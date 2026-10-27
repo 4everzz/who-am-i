@@ -1899,12 +1899,12 @@ html.snap-on .pages .page.is-in > .wrap {
   height: 44px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line-2);
+  border: 1px solid rgba(43, 35, 24, 0.85);
   border-radius: 50%;
-  background: var(--panel);
-  color: var(--fg);
+  background: #2b2318;
+  color: #f5e8c9;
   cursor: pointer;
-  box-shadow: 0 10px 26px -16px rgba(42, 30, 18, 0.6);
+  box-shadow: 0 14px 30px -14px rgba(43, 35, 24, 0.55);
   transition: transform 0.2s var(--ease), border-color 0.2s var(--ease),
               background 0.25s var(--ease), color 0.25s var(--ease);
 }
@@ -1922,6 +1922,13 @@ html.snap-on .pages .page.is-in > .wrap {
 [data-theme="dark"] .theme-toggle .tt-moon { opacity: 0; transform: rotate(-40deg) scale(0.8); }
 
 /* 连点提示气泡 */
+
+[data-theme="dark"] .theme-toggle {
+  background: #f0e6d2;
+  color: #1b1711;
+  border-color: rgba(240, 230, 210, 0.9);
+}
+
 .theme-toast {
   position: fixed;
   right: 22px;
