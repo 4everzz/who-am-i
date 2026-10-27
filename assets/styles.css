@@ -481,7 +481,7 @@ body.nav-open .menu-btn span:last-child { transform: translateY(-2.75px) rotate(
 }
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 .metric {
   padding: 26px 22px;
@@ -1204,7 +1204,9 @@ body.modal-open { overflow: hidden; }
   .nav a.is-active::after { display: none; }
   .menu-btn { display: block; }
 
-  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .metrics-grid { grid-template-columns: 1fr; }
+  .metric { border-left: 0; border-top: 1px solid var(--line); padding: 18px 0; }
+  .metric:first-child { border-top: 0; }
   .metric { padding: 22px 20px; }
   .metric:nth-child(odd) { border-left: 0; padding-left: 0; }
   .metric:nth-child(n + 3) { border-top: 1px solid var(--line); }
@@ -1294,8 +1296,8 @@ body.modal-open { overflow: hidden; }
   display: block;
   padding-top: 4px;
   font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.05em;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
   line-height: 1.5;
   color: var(--accent);
 }
@@ -1566,3 +1568,96 @@ h1 { letter-spacing: -0.015em; }
   .post-body h2 { margin-top: 36px; }
   .post-body pre { font-size: 12px; padding: 14px; }
 }
+
+
+/* ============================================================
+   指针动效：纸张上的触感（只用 transform / opacity）
+   ============================================================ */
+.project-card {
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+             translateY(var(--lift, 0px));
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease),
+              border-color 0.3s var(--ease);
+  will-change: transform;
+}
+.project-card:hover {
+  --lift: -4px;
+  border-color: rgba(163, 70, 42, 0.3);
+  box-shadow: 0 20px 44px -30px rgba(92, 68, 40, 0.55);
+}
+.project-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%),
+              rgba(163, 70, 42, 0.09), transparent 68%);
+}
+.project-card:hover::after { opacity: 1; }
+
+.note-item {
+  position: relative;
+  transition: background 0.25s var(--ease), padding-left 0.25s var(--ease);
+}
+.note-item::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  width: 2px;
+  height: 0;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: height 0.3s var(--ease), opacity 0.3s var(--ease);
+}
+.note-item:hover {
+  background: linear-gradient(90deg, rgba(163, 70, 42, 0.055), transparent 62%);
+  padding-left: 8px;
+}
+.note-item:hover::before { height: 58%; opacity: 1; }
+.note-item:hover .note-arrow { transform: translateX(5px); color: var(--accent); }
+.note-arrow { transition: transform 0.28s var(--ease), color 0.28s var(--ease); }
+
+.btn {
+  transition: transform 0.22s var(--ease), box-shadow 0.25s var(--ease),
+              background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0) scale(0.985); }
+.btn-primary:hover { box-shadow: 0 12px 26px -14px rgba(163, 70, 42, 0.6); }
+.btn-ghost:hover { border-color: var(--accent-line); color: var(--accent); }
+
+.nav a { position: relative; }
+.nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.28s var(--ease);
+}
+.nav a:hover::after,
+.nav a.is-active::after { transform: scaleX(1); }
+
+.terminal {
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+.terminal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 46px -32px rgba(92, 68, 40, 0.5);
+}
+
+.post-body a {
+  border-bottom: 1px solid var(--accent-line);
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.post-body a:hover { background: var(--accent-soft); border-color: var(--accent); }

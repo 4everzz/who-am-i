@@ -181,6 +181,48 @@
     }
   })();
 
+  /* ---------- 指针动效：卡片 3D 倾斜 + 按钮磁吸 ---------- */
+  var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (!reduceMotion && finePointer) {
+    document.querySelectorAll('.project-card').forEach(function (card) {
+      var raf = null;
+
+      card.addEventListener('mousemove', function (e) {
+        if (raf) return;
+        raf = requestAnimationFrame(function () {
+          var r = card.getBoundingClientRect();
+          var px = (e.clientX - r.left) / r.width;
+          var py = (e.clientY - r.top) / r.height;
+
+          card.style.setProperty('--ry', ((px - 0.5) * 3.2).toFixed(2) + 'deg');
+          card.style.setProperty('--rx', ((0.5 - py) * 3.2).toFixed(2) + 'deg');
+          card.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
+          card.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+          raf = null;
+        });
+      });
+
+      card.addEventListener('mouseleave', function () {
+        card.style.setProperty('--rx', '0deg');
+        card.style.setProperty('--ry', '0deg');
+      });
+    });
+
+    document.querySelectorAll('[data-magnetic]').forEach(function (el) {
+      el.addEventListener('mousemove', function (e) {
+        var r = el.getBoundingClientRect();
+        var dx = (e.clientX - r.left - r.width / 2) * 0.14;
+        var dy = (e.clientY - r.top - r.height / 2) * 0.22;
+        el.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
+      });
+
+      el.addEventListener('mouseleave', function () {
+        el.style.transform = '';
+      });
+    });
+  }
+
   /* ---------- 页脚年份 ---------- */
   var year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());

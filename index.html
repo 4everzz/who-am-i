@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
 <meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=20261025n">
+<link rel="stylesheet" href="assets/styles.css?v=20261025p">
 </head>
 <body>
 
@@ -70,7 +70,7 @@
 
         <p class="hero-lead" data-reveal data-delay="120">
           这里记录 AI Agent 的工程实践：RAG 检索质量、多智能体编排，
-          以及把一个家庭饮食应用从 0 做到上线、服务 50+ 位真实用户的完整过程。
+          以及把一个家庭饮食应用从 0 做到上线的完整过程。
         </p>
 
         <p class="hero-note" data-reveal data-delay="180">
@@ -78,7 +78,7 @@
         </p>
 
         <div class="hero-actions" data-reveal data-delay="240">
-          <a class="btn btn-primary" href="#work">
+          <a class="btn btn-primary" href="#work" data-magnetic>
             看三个项目
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
           </a>
@@ -115,25 +115,17 @@
   <!-- ==================== 指标 ==================== -->
   <section class="metrics-band" aria-label="关键数据">
     <div class="wrap metrics-grid">
-      <div class="metric" data-reveal>
-        <div class="metric-num"><span data-count="50" data-suffix="+">50+</span></div>
-        <div class="metric-label">已上线应用的核心用户</div>
-        <div class="metric-src">小家开饭啦 · H5 与小程序</div>
-      </div>
       <div class="metric" data-reveal data-delay="60">
         <div class="metric-num"><span data-count="100">100</span><small>题</small></div>
         <div class="metric-label">自建 RAG 评测集</div>
-        <div class="metric-src">39 基础 + 61 口语化难题</div>
       </div>
       <div class="metric" data-reveal data-delay="120">
         <div class="metric-num"><span data-count="1416">1,416</span><small>条</small></div>
         <div class="metric-label">智愿通自动化测试</div>
-        <div class="metric-src">从 0 建立，改坏代码立刻报警</div>
       </div>
       <div class="metric" data-reveal data-delay="180">
         <div class="metric-num metric-range">22.3<span class="arrow">→</span>7.0<small>s</small></div>
         <div class="metric-label">提问到出字延迟</div>
-        <div class="metric-src">智愿通 · 降幅 69%</div>
       </div>
     </div>
   </section>
@@ -301,7 +293,6 @@
           <span class="note-kicker">检索 / RAG</span>
           <span class="note-body">
             <span class="note-title">为什么纯向量检索不够用：BM25 + RRF 混合检索实践</span>
-            <span class="note-desc">纯向量对专名会漂移，纯 BM25 扛不住口语改写，两路分数还不同量纲。附 39 题消融。</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
@@ -309,7 +300,6 @@
           <span class="note-kicker">测试 / 排障</span>
           <span class="note-body">
             <span class="note-title">38 个单测全绿，功能一次都没触发过</span>
-            <span class="note-desc">三个 bug 叠成一条死链，以及为什么「没报错」不等于「跑通了」。</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
@@ -317,7 +307,6 @@
           <span class="note-kicker">排障 / 工程习惯</span>
           <span class="note-body">
             <span class="note-title">同一个错犯了五次：阈值与判据的量纲必须匹配</span>
-            <span class="note-desc">该触发的永不触发、不该触发的每次都触发，五次数不出错的事故复盘。</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
@@ -325,7 +314,6 @@
           <span class="note-kicker">评测 / 可信度</span>
           <span class="note-body">
             <span class="note-title">评测工具比业务代码更危险</span>
-            <span class="note-desc">取错产物、repr 污染上下文、指纹漏掉被测代码——三个静默缺陷与四条判据。</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
@@ -333,7 +321,6 @@
           <span class="note-kicker">AI / Agent</span>
           <span class="note-body">
             <span class="note-title">手写一个有限的 ReAct Agent：为什么不用框架</span>
-            <span class="note-desc">工具权限、模型不返回 JSON 的兜底、SSE 生命周期与降级设计。</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
@@ -341,7 +328,6 @@
           <span class="note-kicker">多智能体 / 编排</span>
           <span class="note-body">
             <span class="note-title">多 Agent 不是越多越好：拆分的边界在哪</span>
-            <span class="note-desc">拆分的判据不是任务数量，而是上下文能否隔离、失败能否归因。</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
@@ -349,7 +335,6 @@
           <span class="note-kicker">评测 / 依赖</span>
           <span class="note-body">
             <span class="note-title">为什么我不用 RAGAS：一次依赖降级的取舍</span>
-            <span class="note-desc">一个评测库把 langchain-openai 从 1.6.2 拽到 1.1.9，这笔交换不划算。</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
@@ -494,7 +479,6 @@
     <p>© <span id="year">2026</span> zmeety.cn</p>
     <p class="footer-note">
       <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a>
-      <span class="foot-sep">·</span> 纯手写 HTML / CSS / JS
     </p>
   </div>
 </footer>
@@ -835,6 +819,6 @@
 </dialog>
 
 
-<script src="assets/app.js?v=20261025n"></script>
+<script src="assets/app.js?v=20261025p"></script>
 </body>
 </html>
