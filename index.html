@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
 <meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=20261025r">
+<link rel="stylesheet" href="assets/styles.css?v=20261025s">
 <script>try{var t=localStorage.getItem('zmeety-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
@@ -113,14 +113,6 @@
 
       </div>
 
-    <div class="scroll-hint" aria-hidden="true">
-      <span class="scroll-hint-line"></span>
-      <span class="scroll-hint-text">向下</span>
-    </div>
-  </section>
-
-  <!-- ==================== 指标 ==================== -->
-  <section class="metrics-band page" aria-label="关键数据">
     <div class="wrap metrics-grid">
       <div class="metric" data-reveal data-delay="60">
         <div class="metric-num"><span data-count="100">100</span><small>题</small></div>
@@ -135,7 +127,14 @@
         <div class="metric-label">提问到出字延迟</div>
       </div>
     </div>
+
+    <div class="scroll-hint" aria-hidden="true">
+      <span class="scroll-hint-line"></span>
+      <span class="scroll-hint-text">向下</span>
+    </div>
   </section>
+
+  
 
   <!-- ==================== 项目 ==================== -->
   <section class="section page" id="work">
@@ -221,7 +220,6 @@
           </ul>
 
           <div class="mini-stats">
-            <div><b>50+</b><span>核心用户</span></div>
             <div><b>59.6s → 6.0s</b><span>MCP 首次调用</span></div>
             <div><b>381 + 12</b><span>后端 / 后台测试</span></div>
           </div>
@@ -477,7 +475,7 @@
 <!-- 翻页指示 -->
 <div class="pager" aria-hidden="true">
   <span class="pager-idx" id="pagerIdx">01</span>
-  <span class="pager-total">/ 07</span>
+  <span class="pager-total">/ 06</span>
   <span class="pager-rail"><i id="pagerRail"></i></span>
 </div>
 
@@ -826,7 +824,7 @@
 </dialog>
 
 
-<script src="assets/app.js?v=20261025r"></script>
+<script src="assets/app.js?v=20261025s"></script>
 
 <button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false" title="切换阅读模式">
   <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>

@@ -231,15 +231,16 @@
     });
   }
 
-  /* ---------- 翻页 + 聚拢 ---------- */
+  /* ---------- 电脑端翻页：平滑滚动 + 聚拢 ---------- */
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
-  var pager = document.querySelector('.pager');
   var pagerIdx = document.getElementById('pagerIdx');
   var pagerRail = document.getElementById('pagerRail');
+  var pager = document.querySelector('.pager');
   var hint = document.querySelector('.scroll-hint');
+  var wide = window.matchMedia('(min-width: 861px)');
 
   if (pages.length) {
-    // 按元素在页面中的横向位置决定从哪一侧聚拢
+    // 按元素在页面里的横向位置决定从哪一侧聚拢
     pages.forEach(function (page) {
       var pr = page.getBoundingClientRect();
       var w = pr.width || window.innerWidth;
@@ -249,78 +250,107 @@
         var ratio = (r.left - pr.left + r.width / 2) / w;
 
         if (r.width > w * 0.62) {
-          el.style.setProperty('--fy', '26px');
+          el.style.setProperty('--fy', '34px');
         } else if (ratio < 0.44) {
-          el.style.setProperty('--fx', '-38px');
-          el.style.setProperty('--fy', '12px');
+          el.style.setProperty('--fx', '-58px');
+          el.style.setProperty('--fy', '16px');
         } else if (ratio > 0.56) {
-          el.style.setProperty('--fx', '38px');
-          el.style.setProperty('--fy', '12px');
+          el.style.setProperty('--fx', '58px');
+          el.style.setProperty('--fy', '16px');
         } else {
-          el.style.setProperty('--fy', '26px');
+          el.style.setProperty('--fy', '34px');
         }
-        el.style.setProperty('--fs', '0.972');
+        el.style.setProperty('--fs', '0.94');
       });
     });
 
-    // 页面进入时整体收一下
+    var locked = false;
+    var current = 0;
+
+    function setPage(i) {
+      current = i;
+      if (pagerIdx) pagerIdx.textContent = String(i + 1).padStart(2, '0');
+      if (pagerRail) {
+        pagerRail.style.transform = 'scaleY(' + ((i + 1) / pages.length).toFixed(3) + ')';
+      }
+    }
+
+    function go(i, instant) {
+      if (i < 0 || i >= pages.length) return;
+      locked = true;
+      setPage(i);
+      var head = document.querySelector('.site-header');
+      var offset = head ? head.offsetHeight : 0;
+      window.scrollTo({
+        top: Math.max(0, pages[i].offsetTop - offset),
+        behavior: instant ? 'auto' : 'smooth'
+      });
+      setTimeout(function () { locked = false; }, 780);
+    }
+
     var pageObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
-        var idx = pages.indexOf(entry.target);
         entry.target.classList.add('is-in');
-
-        if (pagerIdx) pagerIdx.textContent = String(idx + 1).padStart(2, '0');
-        if (pagerRail) pagerRail.style.transform = 'scaleY(' + ((idx + 1) / pages.length).toFixed(3) + ')';
+        if (!locked) setPage(pages.indexOf(entry.target));
       });
-    }, { threshold: 0.5 });
-
+    }, { threshold: 0.45 });
     pages.forEach(function (p) { pageObserver.observe(p); });
 
-    // 桌面才启用吸附
-    var wide = window.matchMedia('(min-width: 861px)');
-    function syncSnap() {
-      document.documentElement.classList.toggle('snap-on', wide.matches);
-      if (pager) pager.classList.toggle('is-on', wide.matches && !reduceMotion);
-    }
-    syncSnap();
-    if (wide.addEventListener) wide.addEventListener('change', syncSnap);
+    // 滚轮：一格一页，交给平滑滚动带出过渡
+    window.addEventListener('wheel', function (e) {
+      if (!wide.matches || locked || Math.abs(e.deltaY) < 6) return;
+      e.preventDefault();
+      go(current + (e.deltaY > 0 ? 1 : -1));
+    }, { passive: false });
 
+    window.addEventListener('keydown', function (e) {
+      if (!wide.matches || locked) return;
+      var k = e.key;
+      if (k === 'PageDown' || k === 'ArrowDown') { e.preventDefault(); go(current + 1); }
+      else if (k === 'PageUp' || k === 'ArrowUp') { e.preventDefault(); go(current - 1); }
+      else if (k === 'Home') { e.preventDefault(); go(0); }
+      else if (k === 'End') { e.preventDefault(); go(pages.length - 1); }
+    });
 
-    // snap 会把锚点跳转吸回最近一页，滚动前先临时关掉
-    function snapToggle(on) {
-      document.documentElement.classList.toggle(
-        'snap-on', on && window.matchMedia('(min-width: 861px)').matches
-      );
-    }
+    // 拖滚动条时同步页码
+    window.addEventListener('scroll', function () {
+      if (locked || !wide.matches) return;
+      var y = window.scrollY;
+      var best = 1e9;
+      var idx = current;
+      pages.forEach(function (p, i) {
+        var d = Math.abs(p.offsetTop - y);
+        if (d < best) { best = d; idx = i; }
+      });
+      if (idx !== current) setPage(idx);
+    }, { passive: true });
 
-    function goTo(el, smooth) {
-      if (!el) return;
-      var href = el.getAttribute('href');
-      var target = href && href.charAt(0) === '#' ? document.querySelector(href) : el;
-      if (!target) return;
-
-      snapToggle(false);
-      target.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
-      setTimeout(function () { snapToggle(true); }, smooth ? 720 : 80);
-    }
-
+    // 导航与首屏按钮
     document.querySelectorAll('.nav a[href^="#"], .hero-actions a[href^="#"]').forEach(function (a) {
       a.addEventListener('click', function (e) {
+        var el = document.querySelector(a.getAttribute('href'));
+        var i = pages.indexOf(el);
+        if (i < 0) return;
         e.preventDefault();
-        goTo(a, true);
-        if (history.replaceState) history.replaceState(null, '', a.getAttribute('href'));
+        go(i);
       });
     });
 
-    window.addEventListener('load', function () {
-      if (!location.hash) return;
-      setTimeout(function () {
-        goTo(document.querySelector(location.hash), false);
-      }, 40);
-    });
+    // 深链直接打开某一页
+    if (location.hash) {
+      var target = document.querySelector(location.hash);
+      var idx = pages.indexOf(target);
+      if (idx > 0) setTimeout(function () { go(idx, true); }, 60);
+    }
 
-    // 滚动后收起首屏提示
+    function syncMode() {
+      document.documentElement.classList.toggle('snap-on', wide.matches);
+      if (pager) pager.classList.toggle('is-on', wide.matches);
+    }
+    syncMode();
+    if (wide.addEventListener) wide.addEventListener('change', syncMode);
+
     window.addEventListener('scroll', function () {
       if (hint) hint.classList.toggle('is-off', window.scrollY > window.innerHeight * 0.25);
     }, { passive: true });

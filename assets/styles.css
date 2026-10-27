@@ -705,7 +705,7 @@ body.nav-open .menu-btn span:last-child { transform: translateY(-2.75px) rotate(
 
 .mini-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 10px;
   margin-top: 20px;
   padding: 14px 0;
@@ -721,7 +721,7 @@ body.nav-open .menu-btn span:last-child { transform: translateY(-2.75px) rotate(
   letter-spacing: -0.01em;
 }
 .mini-stats span {
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--mute);
   line-height: 1.4;
 }
@@ -1679,8 +1679,7 @@ h1 { letter-spacing: -0.015em; }
 
 /* 桌面开启吸附 */
 html.snap-on {
-  scroll-snap-type: y mandatory;
-  scroll-padding-top: 0;
+  scroll-snap-type: none;
 }
 html.snap-on body { overscroll-behavior-y: contain; }
 
@@ -1963,3 +1962,33 @@ html.snap-on .pages .page.is-in > .wrap {
 [data-theme="dark"] .post-body pre code { color: #d8cbb2; }
 [data-theme="dark"] .post-body th { background: rgba(240, 230, 210, 0.07); }
 [data-theme="dark"] .post-body td { border-color: var(--line); }
+
+
+/* ============================================================
+   首页与指标条合并 · 平滑翻页
+   ============================================================ */
+.pages .hero {
+  padding-top: clamp(76px, 9vh, 100px);
+  padding-bottom: clamp(46px, 6vh, 64px);
+}
+.pages .hero .hero-inner { align-items: center; }
+.hero .metrics-grid {
+  margin-top: clamp(26px, 4vh, 46px);
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.hero .metric { padding: 0 24px; }
+.hero .metric:first-child { padding-left: 0; }
+.hero .metric:last-child { padding-right: 0; }
+.hero .metric-num { font-size: clamp(1.5rem, 2.1vw, 1.95rem); }
+.hero .metric-label { margin-top: 6px; font-size: 12.5px; letter-spacing: 0.01em; }
+
+/* 聚拢：位移加大一点，才有「收进来」的感觉 */
+[data-reveal] {
+  transform: translate3d(var(--fx, 0px), var(--fy, 34px), 0) scale(var(--fs, 0.94));
+}
+
+
+/* 夜间：项目侧栏 */
+[data-theme="dark"] .project-side { background: rgba(240, 230, 210, 0.055); }
+[data-theme="dark"] .side-label { color: var(--dim); }
