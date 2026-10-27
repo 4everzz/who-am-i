@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
 <meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=20261025p">
+<link rel="stylesheet" href="assets/styles.css?v=20261025r">
 </head>
 <body>
 
@@ -51,10 +51,10 @@
   </div>
 </header>
 
-<main id="main">
+<main id="main" class="pages">
 
   <!-- ==================== HERO ==================== -->
-  <section class="hero" id="top">
+  <section class="hero page" id="top">
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="wrap hero-grid">
       <div class="hero-copy">
@@ -109,11 +109,17 @@
 
         </div>
       </aside>
+
+      </div>
+
+    <div class="scroll-hint" aria-hidden="true">
+      <span class="scroll-hint-line"></span>
+      <span class="scroll-hint-text">向下</span>
     </div>
   </section>
 
   <!-- ==================== 指标 ==================== -->
-  <section class="metrics-band" aria-label="关键数据">
+  <section class="metrics-band page" aria-label="关键数据">
     <div class="wrap metrics-grid">
       <div class="metric" data-reveal data-delay="60">
         <div class="metric-num"><span data-count="100">100</span><small>题</small></div>
@@ -131,15 +137,11 @@
   </section>
 
   <!-- ==================== 项目 ==================== -->
-  <section class="section" id="work">
+  <section class="section page" id="work">
     <div class="wrap">
       <div class="section-head" data-reveal>
         <div class="section-kicker">Selected Work</div>
         <h2>三个从 0 到 1 的项目</h2>
-        <p class="section-note">
-          一个证明技术广度，一个证明交付能力，一个证明检索深度。
-          卡片里是结论，点开是设计与取舍。
-        </p>
       </div>
 
       <!-- DevFleet -->
@@ -278,14 +280,11 @@
   </section>
 
   <!-- ==================== 技术笔记 ==================== -->
-  <section class="section" id="notes">
+  <section class="section page" id="notes">
     <div class="wrap">
       <div class="section-head" data-reveal>
         <div class="section-kicker">Notes</div>
         <h2>技术笔记</h2>
-        <p class="section-note">
-          把项目里踩过的坑和做过的取舍写下来。每条结论都有对应的数据和出处，不是读后感。
-        </p>
       </div>
 
       <div class="notes-list">
@@ -344,7 +343,7 @@
   </section>
 
   <!-- ==================== 技能 ==================== -->
-  <section class="section" id="stack">
+  <section class="section page" id="stack">
     <div class="wrap">
       <div class="section-head" data-reveal>
         <div class="section-kicker">Stack</div>
@@ -402,7 +401,7 @@
   </section>
 
   <!-- ==================== 原则 ==================== -->
-  <section class="section section-alt" id="principles">
+  <section class="section section-alt page" id="principles">
     <div class="wrap">
       <div class="section-head" data-reveal>
         <div class="section-kicker">How I Work</div>
@@ -444,7 +443,7 @@
   </section>
 
   <!-- ==================== 关于 ==================== -->
-  <section class="section contact" id="about">
+  <section class="section contact page page-last" id="about">
     <div class="wrap">
       <div class="contact-inner" data-reveal>
         <div class="section-kicker">About</div>
@@ -473,6 +472,13 @@
   </section>
 
 </main>
+
+<!-- 翻页指示 -->
+<div class="pager" aria-hidden="true">
+  <span class="pager-idx" id="pagerIdx">01</span>
+  <span class="pager-total">/ 07</span>
+  <span class="pager-rail"><i id="pagerRail"></i></span>
+</div>
 
 <footer class="site-footer">
   <div class="wrap footer-inner">
@@ -819,6 +825,6 @@
 </dialog>
 
 
-<script src="assets/app.js?v=20261025p"></script>
+<script src="assets/app.js?v=20261025r"></script>
 </body>
 </html>

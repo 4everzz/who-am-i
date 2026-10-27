@@ -13,11 +13,11 @@
   --line-2: rgba(90, 70, 44, 0.28);
   /* 墨 */
   --fg: #2b2318;
-  --dim: #5c4a35;
-  --mute: #74604a;
+  --dim: #4f3e2b;
+  --mute: #6b5740;
   /* 朱砂 */
-  --accent: #a3462a;
-  --accent-dim: #83341d;
+  --accent: #8f3a20;
+  --accent-dim: #6f2c17;
   --accent-soft: rgba(163, 70, 42, 0.08);
   --accent-line: rgba(163, 70, 42, 0.32);
 
@@ -1661,3 +1661,163 @@ h1 { letter-spacing: -0.015em; }
   transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
 }
 .post-body a:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+
+/* ============================================================
+   翻页布局 + 聚拢入场
+   ============================================================ */
+.pages .page {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+}
+
+/* 桌面开启吸附 */
+html.snap-on {
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: 0;
+}
+html.snap-on body { overscroll-behavior-y: contain; }
+
+/* 整页轻微收缩，配合子元素聚拢（仅在 JS 启用吸附后生效，避免脚本失败时内容不可见） */
+html.snap-on .pages .page > .wrap {
+  transform: scale(1.014);
+  transition: transform 1s var(--ease);
+}
+html.snap-on .pages .page.is-in > .wrap {
+  transform: scale(1);
+}
+
+/* 数据页：放大数字，撑起一屏 */
+.metrics-band.page .metrics-grid { width: 100%; }
+.metrics-band.page .metric { padding: 34px 26px; }
+.metrics-band.page .metric-num { font-size: clamp(2.6rem, 5vw, 4rem); }
+.metrics-band.page .metric-label { margin-top: 10px; font-size: 15px; }
+
+/* 聚拢：方向由 JS 写入 --fx / --fy，scale 从略大收到 1 */
+[data-reveal] {
+  opacity: 0;
+  transform: translate3d(var(--fx, 0px), var(--fy, 24px), 0) scale(var(--fs, 1));
+  transition: opacity 0.62s var(--ease) var(--rd, 0ms),
+              transform 0.8s var(--ease) var(--rd, 0ms);
+}
+[data-reveal].is-in {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* 最后一页给页脚留位置 */
+.pages .page-last {
+  min-height: calc(100svh - 92px);
+}
+
+/* 页码 */
+.pager {
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 40;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.4s var(--ease);
+}
+.pager.is-on { opacity: 1; }
+.pager-idx { color: var(--accent); font-size: 13px; }
+.pager-rail {
+  width: 1px;
+  height: 54px;
+  background: var(--line);
+  margin-top: 4px;
+  overflow: hidden;
+}
+.pager-rail i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.35s var(--ease);
+}
+
+/* 首屏提示 */
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--mute);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+}
+.scroll-hint.is-off { opacity: 0; transform: translateX(-50%) translateY(8px); }
+.scroll-hint-line {
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(to bottom, transparent, var(--accent-line));
+  animation: hintDrift 2.2s ease-in-out infinite;
+}
+@keyframes hintDrift {
+  0%, 100% { transform: scaleY(0.5); transform-origin: top; opacity: 0.5; }
+  50% { transform: scaleY(1); transform-origin: top; opacity: 1; }
+}
+
+/* 移动端不做强制吸附，避免内容超一屏时卡住 */
+@media (max-width: 860px) {
+  html.snap-on { scroll-snap-type: none; }
+  .pages .page { min-height: auto; }
+  .pages .page > .wrap { transform: none; opacity: 1; }
+  .pager { display: none; }
+  .scroll-hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .pages .page > .wrap { transform: none; opacity: 1; transition: none; }
+}
+
+
+/* 作品页压到一屏：只留结论，细节在弹层里 */
+.pages #work {
+  padding-top: 44px;
+  padding-bottom: 32px;
+}
+.pages #work .section-head { margin-bottom: 18px; }
+.pages #work .section-kicker { margin-bottom: 8px; }
+.pages #work .project-desc,
+.pages #work .project-points,
+.pages #work .side-note { display: none; }
+.pages #work .project-card { padding: 22px 24px; }
+.pages #work .project-featured { min-height: 0; }
+.pages #work .project-featured .project-main { justify-content: flex-start; }
+.pages #work .project-head,
+.pages #work .project-meta { margin-bottom: 10px; }
+.pages #work .project-sub { margin-bottom: 12px; }
+.pages #work .project-foot { margin-top: 14px; padding-top: 12px; }
+.pages #work .project-grid { gap: 14px; margin-top: 14px; }
+.pages #work .side-stat { padding: 10px 0; }
+.pages #work h3 { font-size: 1.5rem; }
