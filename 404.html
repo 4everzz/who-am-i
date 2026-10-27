@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>404 · zmeety</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --paper: #f5e8c9; --ink: #2b2318; --ink-2: #5c4a35; --ink-3: #74604a;
+    --accent: #a3462a; --line: rgba(90,70,44,.2);
+    --serif: Georgia, "Times New Roman", "Songti SC", "STSong", "SimSun", serif;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    min-height: 100vh; display: block;
+    padding: clamp(64px, 13vh, 150px) 32px 64px;
+    background:
+      radial-gradient(900px 520px at 80% -8%, rgba(163,70,42,.08), transparent 62%),
+      radial-gradient(720px 460px at 4% 4%, rgba(120,90,45,.10), transparent 60%),
+      var(--paper);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    position: relative;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none;
+    opacity: .3; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+  }
+  .box { width: 100%; max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
+  .code {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .16em;
+    color: var(--accent); text-transform: uppercase;
+  }
+  h1 {
+    margin-top: 14px;
+    font-family: var(--serif);
+    font-size: clamp(2rem, 6vw, 2.8rem);
+    line-height: 1.25; letter-spacing: -.01em;
+  }
+  p { margin-top: 16px; font-size: 15px; line-height: 1.8; color: var(--ink-2); }
+  code {
+    font-family: var(--mono); font-size: .92em; padding: 2px 6px;
+    border-radius: 4px; background: rgba(90,70,44,.1); color: #4a3a26;
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  a {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 46px; padding: 0 20px; border-radius: 9px;
+    font-size: 14px; font-weight: 500; text-decoration: none;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .primary { background: var(--accent); color: #fff8ea; font-weight: 600; }
+  .primary:hover { background: #83341d; }
+  .ghost { border: 1px solid var(--line); color: var(--ink-2); }
+  .ghost:hover { border-color: rgba(163,70,42,.45); color: var(--accent); }
+  .foot {
+    margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  }
+  .stamp {
+    position: fixed; right: 3vw; bottom: 2vw; z-index: 0;
+    font-family: var(--serif);
+    font-size: clamp(140px, 20vw, 260px);
+    line-height: .8; letter-spacing: -.05em;
+    color: rgba(163,70,42,.065);
+    pointer-events: none; user-select: none;
+  }
+  @media (max-width: 720px) {
+    .stamp { font-size: 36vw; right: 2vw; bottom: 0; }
+  }
+</style>
+</head>
+<body>
+  <main class="box">
+    <p class="code">404 / Path Not Found</p>
+    <h1>这条路径没有对应的证据。</h1>
+    <p>
+      页面不存在，或者已经被移走了。如果你是从某个链接点进来的，
+      可能是地址写错了——项目和笔记都还在首页。
+    </p>
+    <div class="actions">
+      <a class="primary" href="index.html">回到首页</a>
+      <a class="ghost" href="index.html#work">看作品</a>
+    </div>
+    <p class="foot">zmeety.cn</p>
+  </main>
+
+  <div class="stamp" aria-hidden="true">404</div>
+</body>
+</html>

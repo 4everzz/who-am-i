@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>评测工具比业务代码更危险：一次让历史分数全部作废的排查 · zmeety</title>
+<meta name="description" content="业务错了用户能看见，度量错了所有人都看不见。记录 RAG 评测中三个静默缺陷：取错产物、repr 污染上下文、指纹漏掉被测代码。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025m">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">评测 / 可信度</div>
+    <h1>评测工具比业务代码更危险：一次让历史分数全部作废的排查</h1>
+    <p class="post-meta">2026-10-10 · 项目一 · 智愿通</p>
+
+    <div class="post-body">
+业务代码写错了，用户一眼能看出来；评测代码写错了，所有人都看不见，而且你会拿着错误的天平，一路自信地往前走。这篇记录我发现自己评测体系里有三处静默缺陷的过程——其中一处，直接让此前的历史分数全部作废。</p>
+
+  <h2>一、先想清楚：RAG 最危险的失效是什么</h2>
+
+  <p>很多人做 RAG 评测只盯 Recall@K。但在这个项目里，<strong>最危险的失效不是「没检索到」，而是「编造」</strong>——检索是对的，材料是对的，模型在组织语言的时候自己加戏了。</p>
+
+  <p>这类问题 Recall 完全测不出来，因为它发生在检索之后的生成环节。所以除了召回率，我额外做了两个指标：</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>指标</th><th>实现方式</th><th>测什么</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>忠实度</strong></td>
+          <td>LLM 评判（裁判模型逐条断言判定）</td>
+          <td>回答里的每个断言，是否被<strong>本轮检索上下文</strong>支持</td>
+        </tr>
+        <tr>
+          <td><strong>引用准确率</strong></td>
+          <td>确定性实现，<strong>不调 LLM</strong></td>
+          <td>回答标注的来源，是否真实存在于检索结果里</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>为什么引用准确率要刻意做成确定性的？因为它是个「客观事实」类的检查——来源在不在检索结果里，用字符串匹配就能判，不需要也不应该交给模型去「感觉」。能确定的地方交给代码，不确定的地方才交给模型。</p>
+
+  <h2>二、第一处缺陷：取错了产物</h2>
+
+  <p>这是最根本的一个。我的工作流是主图 + 子图结构，其中子图负责一部分中间处理，主图产出最终的 <code>final_text</code>。</p>
+
+  <p>而评测脚本取的是<strong>子图的中间产物</strong>，用户实际看到的是<strong>主图的最终文本</strong>。两者根本不是同一个东西，导致：</p>
+
+  <ul>
+    <li>引用准确率恒为 <strong>0/0</strong>——因为子图产物里压根没有引用信息；</li>
+    <li>忠实度评判的是一段用户永远不会看到的文本，分数再高也没有意义。</li>
+  </ul>
+
+  <div class="callout">
+    <p><strong>原则：评测必须跑「用户看到的那一层」。</strong>不是「逻辑上等价的一层」，不是「更容易拿到的一层」，就是用户屏幕上最终呈现的那一层。</p>
+  </div>
+
+  <h2>三、第二处缺陷：<code>str(list)</code> 把上下文污染成 Python repr</h2>
+
+  <p>这个更隐蔽，也更致命。</p>
+
+  <p>构造评判 prompt 时，我需要把检索到的上下文列表拼进去。当时图省事直接写了 <code>str(contexts)</code>，而 <code>str()</code> 一个列表会调用每个元素的 <code>__repr__</code>：</p>
+
+  <pre><code># 原始上下文（真实换行）
+"第一条材料
+ 第二条材料"
+
+# 经过 str(list) 之后
+'[\'第一条材料\\n 第二条材料\']'
+#   ↑ 真实换行变成了字面的 \n 两个字符
+#   ↑ 外面还裹上了引号、方括号、转义反斜杠</code></pre>
+
+  <p>后果有两层：</p>
+
+  <ol>
+    <li><strong>来源名被污染</strong>——引用校验按文件名匹配，而文件名现在被包在转义字符里，匹配不上；</li>
+    <li><strong>裁判模型读到的是畸形文本</strong>——它看到的不是正常段落，而是一坨带转义的字符串字面量。</li>
+  </ol>
+
+  <p>这意味着在修好之前，<strong>所有历史忠实度分数都是不可信的</strong>。不是偏低或偏高，是根本不知道它测了什么。</p>
+
+  <h2>四、第三处缺陷：指纹没包含被测代码</h2>
+
+  <p>为了防止「拿旧结果冒充新结果」，我给评测报告加了<strong>指纹机制</strong>：报告里记录题集内容哈希，一旦题集变了，指纹不匹配就强制全量重跑，避免沿用过期数据。</p>
+
+  <p>但第一版指纹<strong>只包含题集，没包含被测代码</strong>。问题很直接：我改了业务代码，题集没动，指纹不变，脚本就认为「可以复用旧报告」——于是拿修好的代码，去展示修复前的分数。</p>
+
+  <p>修正后的指纹要覆盖：题集内容、被测代码、裁判模型、关键提示词、结构化查询代码、数据范围、检索配置。</p>
+
+  <p>还有一个边界要想清楚：<strong>指纹不应该包含评测脚本自身</strong>。因为改评测脚本的展示逻辑（比如换个表格格式），不应该让历史分数全部作废——那是工具在变，不是被测对象在变。</p>
+
+  <h2>五、题目污染：评测前必须隔离画像</h2>
+
+  <p>这个坑埋得比较深，但后果很直观。</p>
+
+  <p>主图的第一站是 <code>update_profile</code>，它会把用户问题里的分数、位次等条件<strong>写进考生画像</strong>。而我的评测题集里全是「浙江 600 分能上什么」这种带具体条件的题目。</p>
+
+  <p>如果不做隔离，跑一轮评测 = <strong>批量改写用户画像</strong>。评测跑完了，真实用户的画像被一堆虚拟考生条件覆盖掉了。</p>
+
+  <p>解法是给评测传一个独立的 <code>profile_id</code>（形如 <code>eval-{eval_set}</code>），让评测数据落在自己的沙箱里，与真实用户完全隔离。</p>
+
+  <h2>六、增量落盘：崩溃不该毁掉整轮结果</h2>
+
+  <p>最后是一个工程细节，但很实用。评测跑一百道题、每题要调 LLM，动辄半小时以上。早期版本是全部跑完才写一次报告——中间任何一次崩溃，整轮结果全丢。</p>
+
+  <p>改成<strong>逐题增量落盘 + <code>--resume</code> 断点续跑</strong>：每题判完立刻写盘，中断后可以从已完成的位置继续。</p>
+
+  <p>配套还做了一个 JSON 破损兜底：LLM 有时会把裸换行写进 JSON 字符串里，触发 <code>Invalid control character</code>，导致整题被记成 error、分数丢失。加上容错解析后，这类破损不再是「整题作废」。</p>
+
+  <h2>七、可复用的四条判据</h2>
+
+  <ol>
+    <li><strong>评测要跑用户看到的那一层</strong>。产物取错，后面所有指标都是幻觉。</li>
+    <li><strong>能确定性判定的，不要交给 LLM</strong>。来源是否存在、引用是否有效，用代码判就够了。</li>
+    <li><strong>指纹必须覆盖被测对象，但不覆盖评测工具自身</strong>。前者防止拿旧数据充新结果，后者避免误伤历史分数。</li>
+    <li><strong>评测可能会写数据</strong>。跑之前先问：它会动到哪些真实数据？需不需要隔离？</li>
+  </ol>
+
+  <div class="quote">
+    <p>业务错了用户能看见，度量错了所有人都看不见——包括你自己。所以评测工具本身，值得用比业务代码更高的标准去对待。</p>
+  </div>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-zhiyuan">智愿通 · 高考志愿填报智能体 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

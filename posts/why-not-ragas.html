@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>为什么我不用 RAGAS：一次依赖降级的取舍 · zmeety</title>
+<meta name="description" content="评测框架能省很多事，但要看它把你的依赖树拽到哪。记录一次 ragas 与 langchain-openai 的版本冲突，以及为什么最后选择自实现句级断言评测。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025m">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">评测 / 依赖</div>
+    <h1>为什么我不用 RAGAS：一次依赖降级的取舍</h1>
+    <p class="post-meta">2026-10-25 · 项目一 · 智愿通</p>
+
+    <div class="post-body">
+      <p class="lead">做忠实度评测时先看的是 RAGAS——这是这个领域最常用的框架，指标齐全、文档也好。真正拦下我的是安装它之后，主链路的依赖被降级了。</p>
+
+      <h2>一、冲突发生在依赖树上</h2>
+
+      <p>实测安装 <code>ragas==0.4.3</code> 时，它会把 <code>langchain-openai</code> 从 1.6.2 降到 1.1.9。也就是说，为了一个<strong>离线评测</strong>依赖，把<strong>线上主链路</strong>的版本往回拽了一截。</p>
+
+      <p>这不是说 RAGAS 有问题，而是这类框架通常绑定了较宽的 langchain 生态版本区间。当你的主链路用的是更新的 API，冲突就不可避免。</p>
+
+      <h2>二、实际需要的能力很窄</h2>
+
+      <p>我要判断的只有两件事：</p>
+
+      <ul>
+        <li>回答里的每一句，能不能在检索到的证据里找到依据；</li>
+        <li>引用编号和证据是否真的对应。</li>
+      </ul>
+
+      <p>需求窄到可以用句级断言表达：把回答拆成句子，逐句判断「有依据 / 无依据 / 与证据矛盾」，再统计比例。这本来就是 RAGAS 忠实度指标的核心做法，自己实现并不复杂。</p>
+
+      <h2>三、自实现时补的两个工程细节</h2>
+
+      <p>自己写反而有两个地方做得更贴合场景：</p>
+
+      <ul>
+        <li><strong>报告指纹</strong>：把评测集、Prompt、模型、被测代码的版本一起算进指纹。任何一项变了，旧报告自动失效，避免拿过期分数做对比。</li>
+        <li><strong>逐题落盘、断点续跑</strong>：评测跑一次要几分钟，中途失败不用从头再来。</li>
+      </ul>
+
+      <p>最后三次重跑的结果是 <strong>0.8576 → 0.9474 → 0.9205</strong>，引用准确率三次都是 <strong>1.0000</strong>。第三次下降不是回退，是主动收紧高风险断言换来的——用 2.7 个点的忠实度，换更硬的事实约束。</p>
+
+      <h2>四、判断规则</h2>
+
+      <div class="callout">
+        <p>引入一个轮子之前，先看两件事：它把依赖树拽到哪、把哪些行为变成黑盒。能用就用；算不过来，就自己写那两百行。</p>
+      </div>
+
+      <p>顺带说一句：<strong>「评估后不用」和「不知道有这个东西」是两回事</strong>。前者是决策，后者是空白。面试里被问到为什么不用某个框架时，能说清代价，比说「没用过」有价值得多。</p>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-zhiyuan">智愿通 · 高考志愿填报智能体 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

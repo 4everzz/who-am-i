@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>zmeety 的个人小站</title>
+<meta name="description" content="zmeety 的个人小站：技术笔记与作品集，记录 RAG 检索质量、多智能体编排与全栈交付的工程实践。">
+<meta name="author" content="zmeety">
+<meta property="og:type" content="website">
+<meta property="og:title" content="zmeety 的个人小站">
+<meta property="og:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
+<meta property="og:url" content="https://zmeety.cn">
+<meta property="og:image" content="https://zmeety.cn/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="zmeety 的个人小站">
+<meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
+<meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css?v=20261025n">
+</head>
+<body>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+<div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top" aria-label="回到顶部">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="主导航">
+      <a href="#work">作品</a>
+      <a href="#notes">笔记</a>
+      <a href="#stack">技能</a>
+      <a href="#principles">原则</a>
+      <a href="#about">关于</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="切换导航菜单">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ==================== HERO ==================== -->
+  <section class="hero" id="top">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow" data-reveal>
+          <span class="dot" aria-hidden="true"></span>
+          持续更新 · AI Agent 工程实践
+        </p>
+
+        <h1 data-reveal data-delay="60">
+          把不确定性，<br>
+          关进<span class="hl">工程框架</span>。
+        </h1>
+
+        <p class="hero-lead" data-reveal data-delay="120">
+          这里记录 AI Agent 的工程实践：RAG 检索质量、多智能体编排，
+          以及把一个家庭饮食应用从 0 做到上线、服务 50+ 位真实用户的完整过程。
+        </p>
+
+        <p class="hero-note" data-reveal data-delay="180">
+          我更在意的不是「能不能跑通」，而是出错时能不能定位、改坏了能不能回滚。
+        </p>
+
+        <div class="hero-actions" data-reveal data-delay="240">
+          <a class="btn btn-primary" href="#work">
+            看三个项目
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="#notes">
+            读技术笔记
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <aside class="terminal" aria-label="站点概要终端卡片" data-reveal data-delay="160">
+        <div class="terminal-bar">
+          <span class="t-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="t-path">~/profile</span>
+        </div>
+        <div class="terminal-body">
+          <p><span class="t-prompt">$</span> <span class="t-cmd">whoami</span></p>
+          <p class="t-out">zmeety · 个人小站</p>
+
+          <p class="t-gap"><span class="t-prompt">$</span> <span class="t-cmd">cat profile.json</span></p>
+<pre class="t-json">{
+  <span class="t-key">"site"</span>:  <span class="t-str">"zmeety.cn"</span>,
+  <span class="t-key">"focus"</span>: [<span class="t-str">"RAG"</span>, <span class="t-str">"Multi-Agent"</span>, <span class="t-str">"全栈交付"</span>],
+  <span class="t-key">"stack"</span>: [<span class="t-str">"Python"</span>, <span class="t-str">"FastAPI"</span>, <span class="t-str">"LangGraph"</span>],
+  <span class="t-key">"works"</span>: [<span class="t-str">"DevFleet"</span>, <span class="t-str">"小家开饭啦"</span>, <span class="t-str">"智愿通"</span>],
+  <span class="t-key">"notes"</span>: <span class="t-str">"不定期更新"</span>
+}</pre>
+
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ==================== 指标 ==================== -->
+  <section class="metrics-band" aria-label="关键数据">
+    <div class="wrap metrics-grid">
+      <div class="metric" data-reveal>
+        <div class="metric-num"><span data-count="50" data-suffix="+">50+</span></div>
+        <div class="metric-label">已上线应用的核心用户</div>
+        <div class="metric-src">小家开饭啦 · H5 与小程序</div>
+      </div>
+      <div class="metric" data-reveal data-delay="60">
+        <div class="metric-num"><span data-count="100">100</span><small>题</small></div>
+        <div class="metric-label">自建 RAG 评测集</div>
+        <div class="metric-src">39 基础 + 61 口语化难题</div>
+      </div>
+      <div class="metric" data-reveal data-delay="120">
+        <div class="metric-num"><span data-count="1416">1,416</span><small>条</small></div>
+        <div class="metric-label">智愿通自动化测试</div>
+        <div class="metric-src">从 0 建立，改坏代码立刻报警</div>
+      </div>
+      <div class="metric" data-reveal data-delay="180">
+        <div class="metric-num metric-range">22.3<span class="arrow">→</span>7.0<small>s</small></div>
+        <div class="metric-label">提问到出字延迟</div>
+        <div class="metric-src">智愿通 · 降幅 69%</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 项目 ==================== -->
+  <section class="section" id="work">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <div class="section-kicker">Selected Work</div>
+        <h2>三个从 0 到 1 的项目</h2>
+        <p class="section-note">
+          一个证明技术广度，一个证明交付能力，一个证明检索深度。
+          卡片里是结论，点开是设计与取舍。
+        </p>
+      </div>
+
+      <!-- DevFleet -->
+      <article class="project-card project-featured" data-reveal>
+        <div class="project-main">
+          <div class="project-meta">
+            <span class="project-index">01</span>
+            <span class="tag tag-accent">个人项目</span>
+            <span class="tag">Multi-Agent 编排</span>
+          </div>
+
+          <h3>DevFleet</h3>
+          <p class="project-sub">Multi-Agent 研发协作平台</p>
+
+          <p class="project-desc">
+            判断一条 PR 能不能合并，研发要横跨任务、代码改动、评审意见、构建日志与项目文档反复比对。
+            DevFleet 把这六类信息统一成一个「每句话都能给出处」的研发资料库，
+            让 AI 直接回答三个问题：这个任务该谁做、这个改动该不该合、这次构建为什么失败。
+          </p>
+
+          <ul class="project-points">
+            <li>三个专职 Agent 分别负责分诊、审查与排障，跨领域问题再由 Planner 拆解、Observer 校验证据冲突。</li>
+            <li>每个结论带编号引用、可回溯原文；不同仓库的资料按 <code>repo_id</code> 隔离，互不串用。</li>
+            <li>写操作一律先落草稿，过权限校验与人工确认才真正调用 GitHub API，全程审计留痕。</li>
+          </ul>
+
+          <div class="project-foot">
+            <ul class="chips" aria-label="技术栈">
+              <li>Python</li><li>FastAPI</li><li>LangGraph</li><li>Milvus</li><li>MCP</li><li>SSE</li><li>PostgreSQL</li><li>Next.js</li>
+            </ul>
+            <button class="btn btn-outline" type="button" data-open="p-devfleet">
+              设计与取舍
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="project-side">
+          <div class="side-stat">
+            <div class="side-num">209</div>
+            <div class="side-label">项自动化测试<br>全部通过</div>
+          </div>
+          <div class="side-stat">
+            <div class="side-num">6</div>
+            <div class="side-label">类研发数据<br>统一接入</div>
+          </div>
+          <div class="side-stat">
+            <div class="side-num">5<span class="side-arrow">→</span>1</div>
+            <div class="side-label">合并审查从翻 5 个页面<br>到 1 个页面拿到结论</div>
+          </div>
+          <div class="side-note">从架构、开发到部署，独立完成</div>
+        </div>
+      </article>
+
+      <div class="project-grid">
+        <!-- 小家开饭啦 -->
+        <article class="project-card" data-reveal>
+          <div class="project-meta">
+            <span class="project-index">02</span>
+            <span class="tag tag-live"><i aria-hidden="true"></i>已上线</span>
+            <span class="tag">全栈交付</span>
+          </div>
+
+          <h3>小家开饭啦</h3>
+          <p class="project-sub">家庭饮食管理与 AI 助手</p>
+
+          <p class="project-desc">
+            家庭成员的菜单、冰箱库存、收藏与点单集中到一处，不用再在群聊里反复确认「买什么、还剩什么」。
+            内置一个只给只读权限的 AI 助手，按现有食材推荐菜谱。
+          </p>
+
+          <ul class="project-points">
+            <li>一套 UniApp + Vue 3 代码交付 H5 / 小程序 / App，管理后台是独立的 Vue 3 工程。</li>
+            <li>手写 ReAct 循环，只开 5 个只读工具、最多 4 步收口，写入一律由用户确认后执行。</li>
+            <li><code>SELECT … FOR UPDATE</code> 锁行计数，收敛并发加入家庭的成员上限竞态。</li>
+          </ul>
+
+          <div class="mini-stats">
+            <div><b>50+</b><span>核心用户</span></div>
+            <div><b>59.6s → 6.0s</b><span>MCP 首次调用</span></div>
+            <div><b>381 + 12</b><span>后端 / 后台测试</span></div>
+          </div>
+
+          <div class="project-foot">
+            <ul class="chips" aria-label="技术栈">
+              <li>UniApp</li><li>Vue 3</li><li>FastAPI</li><li>PostgreSQL</li><li>Redis</li><li>MCP</li>
+            </ul>
+            <div class="foot-actions">
+              <a class="link-out" href="https://menu.zmeety.cn" target="_blank" rel="noopener">访问应用
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+              </a>
+              <button class="btn btn-outline btn-sm" type="button" data-open="p-menu">详情</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- 智愿通 -->
+        <article class="project-card" data-reveal data-delay="80">
+          <div class="project-meta">
+            <span class="project-index">03</span>
+            <span class="tag">问答系统</span>
+            <span class="tag">RAG 质量工程</span>
+          </div>
+
+          <h3>智愿通</h3>
+          <p class="project-sub">高考志愿填报智能体</p>
+
+          <p class="project-desc">
+            把散落在考试院官网、高校招生网与院校档案里的招生信息，做成可问答的检索链路。
+            难点不在「能回答」，而在「答的每个数字都能回溯到出处，并且不该拒答的不拒答」。
+          </p>
+
+          <ul class="project-points">
+            <li>向量 + 关键词双路召回后 RRF 融合，领域词典从结构化库动态读取，简称不再漏检。</li>
+            <li>LangGraph 状态机串联抽取、校验、SQL、打标与事实校验，模型改写的分数位次直接打回。</li>
+            <li>自建 100 题评测集与句级断言评测，报告带指纹防过期、可断点续跑。</li>
+          </ul>
+
+          <div class="mini-stats">
+            <div><b>19 → 0</b><span>误拒答 / 35 题</span></div>
+            <div><b>+2.56</b><span>首位命中率 pt</span></div>
+            <div><b>100%</b><span>引用准确率</span></div>
+          </div>
+
+          <div class="project-foot">
+            <ul class="chips" aria-label="技术栈">
+              <li>LangGraph</li><li>pgvector</li><li>RRF</li><li>jieba</li><li>FastAPI</li><li>pytest</li>
+            </ul>
+            <div class="foot-actions">
+              <button class="btn btn-outline btn-sm" type="button" data-open="p-zhiyuan">详情</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 技术笔记 ==================== -->
+  <section class="section" id="notes">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <div class="section-kicker">Notes</div>
+        <h2>技术笔记</h2>
+        <p class="section-note">
+          把项目里踩过的坑和做过的取舍写下来。每条结论都有对应的数据和出处，不是读后感。
+        </p>
+      </div>
+
+      <div class="notes-list">
+        <a class="note-item" href="posts/why-vector-not-enough.html" data-reveal>
+          <span class="note-kicker">检索 / RAG</span>
+          <span class="note-body">
+            <span class="note-title">为什么纯向量检索不够用：BM25 + RRF 混合检索实践</span>
+            <span class="note-desc">纯向量对专名会漂移，纯 BM25 扛不住口语改写，两路分数还不同量纲。附 39 题消融。</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" href="posts/hitl-three-bugs.html" data-reveal>
+          <span class="note-kicker">测试 / 排障</span>
+          <span class="note-body">
+            <span class="note-title">38 个单测全绿，功能一次都没触发过</span>
+            <span class="note-desc">三个 bug 叠成一条死链，以及为什么「没报错」不等于「跑通了」。</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" href="posts/dimension-mismatch.html" data-reveal>
+          <span class="note-kicker">排障 / 工程习惯</span>
+          <span class="note-body">
+            <span class="note-title">同一个错犯了五次：阈值与判据的量纲必须匹配</span>
+            <span class="note-desc">该触发的永不触发、不该触发的每次都触发，五次数不出错的事故复盘。</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" href="posts/eval-integrity.html" data-reveal>
+          <span class="note-kicker">评测 / 可信度</span>
+          <span class="note-body">
+            <span class="note-title">评测工具比业务代码更危险</span>
+            <span class="note-desc">取错产物、repr 污染上下文、指纹漏掉被测代码——三个静默缺陷与四条判据。</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" href="posts/bounded-react-agent.html" data-reveal>
+          <span class="note-kicker">AI / Agent</span>
+          <span class="note-body">
+            <span class="note-title">手写一个有限的 ReAct Agent：为什么不用框架</span>
+            <span class="note-desc">工具权限、模型不返回 JSON 的兜底、SSE 生命周期与降级设计。</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" href="posts/multi-agent-boundary.html" data-reveal>
+          <span class="note-kicker">多智能体 / 编排</span>
+          <span class="note-body">
+            <span class="note-title">多 Agent 不是越多越好：拆分的边界在哪</span>
+            <span class="note-desc">拆分的判据不是任务数量，而是上下文能否隔离、失败能否归因。</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" href="posts/why-not-ragas.html" data-reveal>
+          <span class="note-kicker">评测 / 依赖</span>
+          <span class="note-body">
+            <span class="note-title">为什么我不用 RAGAS：一次依赖降级的取舍</span>
+            <span class="note-desc">一个评测库把 langchain-openai 从 1.6.2 拽到 1.1.9，这笔交换不划算。</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ==================== 技能 ==================== -->
+  <section class="section" id="stack">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <div class="section-kicker">Stack</div>
+        <h2>技术栈</h2>
+        <p class="section-note">只列项目里真正用过的。没写过的不往上放。</p>
+      </div>
+
+      <div class="stack-grid">
+        <div class="stack-card" data-reveal>
+          <h3><span class="stack-icon" aria-hidden="true">A</span>AI 应用</h3>
+          <dl>
+            <dt>Agent</dt>
+            <dd>Python、FastAPI、LangChain、LangGraph、MCP、手写 ReAct</dd>
+            <dt>RAG</dt>
+            <dd>混合检索、RRF、Rerank、引用溯源、忠实度评测</dd>
+          </dl>
+        </div>
+
+        <div class="stack-card" data-reveal data-delay="60">
+          <h3><span class="stack-icon" aria-hidden="true">B</span>后端与数据</h3>
+          <dl>
+            <dt>数据层</dt>
+            <dd>PostgreSQL、pgvector、MySQL、Redis（Lua 原子限流）</dd>
+            <dt>工程</dt>
+            <dd>SQLAlchemy 2 异步 ORM、Alembic、JWT 鉴权、行锁与幂等设计</dd>
+          </dl>
+        </div>
+
+        <div class="stack-card" data-reveal data-delay="120">
+          <h3><span class="stack-icon" aria-hidden="true">C</span>前端与交付</h3>
+          <dl>
+            <dt>前端</dt>
+            <dd>UniApp、Vue 3、TypeScript、React、Next.js</dd>
+            <dt>交付</dt>
+            <dd>Docker Compose、Nginx、Linux、HTTPS 与证书自动续期</dd>
+          </dl>
+        </div>
+
+        <div class="stack-card" data-reveal data-delay="180">
+          <h3><span class="stack-icon" aria-hidden="true">D</span>工程与安全</h3>
+          <dl>
+            <dt>质量</dt>
+            <dd>pytest、自实现忠实度与引用评测、数据质量规则引擎</dd>
+            <dt>安全</dt>
+            <dd>bcrypt、登录防枚举、越权逐接口校验、上传校验</dd>
+          </dl>
+        </div>
+      </div>
+
+      <p class="stack-foot" data-reveal>
+        日常使用 Codex、Claude Code、Cursor 等 AI 编程工具；评测框架评估过 RAGAS，
+        因依赖降级问题改为自实现同算法。
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== 原则 ==================== -->
+  <section class="section section-alt" id="principles">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <div class="section-kicker">How I Work</div>
+        <h2>四条工作原则</h2>
+        <p class="section-note">项目之外的一些判断标准，也决定了代码最后长什么样。</p>
+      </div>
+
+      <ol class="principles">
+        <li data-reveal>
+          <span class="p-num">01</span>
+          <div>
+            <h3>先问「真的需要 Agent 吗」</h3>
+            <p>能一次模型调用或固定流程解决的，不加自主循环。上 Agent 意味着引入不确定性、成本和运维负担，它是负债，不是资产。</p>
+          </div>
+        </li>
+        <li data-reveal data-delay="60">
+          <span class="p-num">02</span>
+          <div>
+            <h3>没有停止条件的循环就是事故</h3>
+            <p>每个自主循环都要有步数上限、Token 预算、墙钟上限和人工接管点。写不出停止条件，就不该上线。</p>
+          </div>
+        </li>
+        <li data-reveal data-delay="120">
+          <span class="p-num">03</span>
+          <div>
+            <h3>约束必须能被验证</h3>
+            <p>「回答要有出处」不是一句口号，得有代码级校验和评测集去查。说不出怎么检查的约束，等于没有约束。</p>
+          </div>
+        </li>
+        <li data-reveal data-delay="180">
+          <span class="p-num">04</span>
+          <div>
+            <h3>不为了用新技术而上线</h3>
+            <p>给检索加了一层重排，39 题对照实验里首位命中率只提升不到 0.1 个百分点，每次却要多等 405 毫秒——于是主动关掉，并把这个决定写进默认配置。</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ==================== 关于 ==================== -->
+  <section class="section contact" id="about">
+    <div class="wrap">
+      <div class="contact-inner" data-reveal>
+        <div class="section-kicker">About</div>
+        <h2>关于这个站点</h2>
+        <p>
+          这里是一个 AI Agent 开发者的工作台：一边放做出来的东西，一边放做的时候想明白的事。
+          项目都真实跑过，笔记里的数字都能在对应的项目里找到出处。
+        </p>
+        <p>
+          站点是手写的 HTML / CSS / JS，没有框架、没有构建步骤、没有统计脚本。
+          内容不定期更新，旧文章不做删改，只在必要时补注。
+        </p>
+
+        <div class="about-contact">
+          <a class="btn btn-primary" href="mailto:2874951005@qq.com">2874951005@qq.com</a>
+        </div>
+
+        <ul class="contact-list about-facts">
+          <li><span>站点</span><em>zmeety.cn</em></li>
+          <li><span>在线作品</span><a href="https://menu.zmeety.cn" target="_blank" rel="noopener">menu.zmeety.cn</a></li>
+          <li><span>技术栈</span><em>纯静态 · 无依赖</em></li>
+          <li><span>更新</span><em>不定期</em></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© <span id="year">2026</span> zmeety.cn</p>
+    <p class="footer-note">
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a>
+      <span class="foot-sep">·</span> 纯手写 HTML / CSS / JS
+    </p>
+  </div>
+</footer>
+
+<!-- ==================== 弹层：DevFleet ==================== -->
+<dialog class="project-dialog" id="p-devfleet" aria-labelledby="dlg-devfleet">
+  <div class="dlg-head">
+    <div class="dlg-kicker">01 / 个人项目 · 0 → 1</div>
+    <h2 id="dlg-devfleet">DevFleet</h2>
+    <p class="dlg-sub">Multi-Agent 研发协作平台</p>
+    <button class="dlg-close" type="button" data-close aria-label="关闭">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="dlg-body">
+    <section class="dlg-section">
+      <h3>问题</h3>
+      <p>
+        研发判断一条 PR 能不能合并，要在任务、代码改动、评审意见、构建日志与本地文档之间来回跳，
+        一个 PR 常要看五六个页面。信息是散的，结论也就没法复核。
+      </p>
+      <p>
+        目标是把这些信息组织成一个可检索、可引用的证据库，让 AI 回答三个具体问题：
+        这个任务该谁做、这个改动该不该合、这次构建为什么失败。
+      </p>
+    </section>
+
+    <section class="dlg-section">
+      <h3>做法</h3>
+      <div class="dlg-items">
+        <div class="dlg-item">
+          <h4>研发数据底座</h4>
+          <p>经 GitHub REST API 同步六类数据（任务、代码改动、评审意见、构建记录、失败日志、项目文档），
+             单 / 多仓库周报一次汇总。统计数字由代码聚合，不让模型生成。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>有出处的问答</h4>
+          <p>结构感知切片后语义 + 关键词双路召回，再 Rerank 二次排序；按 <code>repo_id</code> 隔离，
+             强制编号引用、可回溯原文。Milvus 不可用时自动降级为关键词检索，宁可答得糙也不答不出。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>多智能体编排</h4>
+          <p>分诊、审查、排障各交给一个专职 Agent；跨领域问题由
+             Planner → Orchestrator → Observer → Synthesis 拆解，按依赖并行执行，
+             Observer 专门校验证据缺口与结论冲突，输出可逐条核对的合入建议。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>写操作要人点头</h4>
+          <p>评论、关任务、加标签统一转为 ActionDraft，过权限校验与人工确认才真正调用 GitHub API，
+             全程落 AuditLog；SSE 实时推送工具调用与执行进度。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dlg-section">
+      <h3>关键取舍</h3>
+
+      <details class="qa">
+        <summary>为什么要拆成多 Agent，一个 Agent 加工具不够吗？</summary>
+        <div class="qa-body">
+          <p>单 Agent 处理跨领域问题时，检索、审查、排障的证据会挤在同一段上下文里互相污染，
+             而且一旦答错很难判断是哪一步出的问题。拆成三个专职 Agent 后，每段上下文边界清晰、失败可归因。</p>
+          <p>代价是链路更长、失败点更多，所以配了两条硬约束：单任务 90 秒超时，依赖失败沿链路传播并跳过下游——
+             一个环节挂了不会把整条链路卡死。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>周报数字为什么不让模型算？</summary>
+        <div class="qa-body">
+          <p>让模型数数是最容易出错、又最难被发现的地方。新增多少任务、合并多少 PR、失败多少次构建，
+             这些由代码聚合后直接填进模板，模型只负责组织语言。数字和措辞的责任分开。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>向量库挂了怎么办？</summary>
+        <div class="qa-body">
+          <p>降级为关键词检索。回答质量会下降，但结论仍然带出处、仍然可核对，
+             比直接抛一个 500 更有用。降级会显式标注，不假装一切正常。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>为什么写操作一定要人工确认？</summary>
+        <div class="qa-body">
+          <p>评论、关闭 Issue、加标签会改变外部状态，而且不可撤销。所以统一先生成草稿，
+             权限校验通过后等人点确认，最后写审计日志。执行过程用 SSE 实时可见，
+             能看到调用了什么工具、进度到哪一步。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="dlg-section">
+      <h3>结果</h3>
+      <div class="dlg-metrics">
+        <div><b>209</b><span>项自动化测试通过</span></div>
+        <div><b>6</b><span>类研发数据统一接入</span></div>
+        <div><b>5 → 1</b><span>合并审查的核查入口</span></div>
+      </div>
+      <p class="dlg-footnote">
+        Agent、检索与结构化输出均有评测集校验；架构、开发与部署由我独立完成。
+      </p>
+    </section>
+
+    <section class="dlg-section">
+      <h3>技术栈</h3>
+      <ul class="chips chips-lg">
+        <li>Python</li><li>FastAPI</li><li>LangChain</li><li>LangGraph</li><li>Milvus</li>
+        <li>MCP</li><li>SSE</li><li>PostgreSQL</li><li>Next.js</li><li>Docker Compose</li>
+      </ul>
+    </section>
+  </div>
+</dialog>
+
+<!-- ==================== 弹层：小家开饭啦 ==================== -->
+<dialog class="project-dialog" id="p-menu" aria-labelledby="dlg-menu">
+  <div class="dlg-head">
+    <div class="dlg-kicker">02 / 个人项目 · 已上线</div>
+    <h2 id="dlg-menu">小家开饭啦</h2>
+    <p class="dlg-sub">家庭饮食管理与 AI 助手</p>
+    <button class="dlg-close" type="button" data-close aria-label="关闭">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="dlg-body">
+    <section class="dlg-section">
+      <h3>问题</h3>
+      <p>
+        家庭成员每天要在群聊里反复商量吃什么、买什么、冰箱还剩什么，信息不同步，
+        食材经常放到过期。目标是把这些集中到一处，并且让 AI 助手能按现有食材给建议。
+      </p>
+    </section>
+
+    <section class="dlg-section">
+      <h3>做法</h3>
+      <div class="dlg-items">
+        <div class="dlg-item">
+          <h4>多端交付</h4>
+          <p>一套 UniApp + Vue 3 代码交付 H5 / 微信小程序 / App，统一请求层处理令牌与跨端差异；
+             管理后台是独立的 Vue 3 工程。H5 与小程序已上线，App 已打包、待上架。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>后端与数据完整性</h4>
+          <p>FastAPI + SQLAlchemy 2 异步栈，JWT 鉴权与家庭级数据隔离；
+             并发加入家庭的上限竞态用 <code>SELECT … FOR UPDATE</code> 行锁收敛，
+             成员唯一约束保证邀请码加入幂等；Alembic 管理 33 条迁移，库存增减包在事务里。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>手写 ReAct 与 MCP</h4>
+          <p>不依赖 LangChain，手写 ReAct 循环：5 个只读工具、最多 4 步强制收口，
+             写入一律由用户确认后走业务接口。经 MCP 接入《中国食物成分表》，按来源标注可信度。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>平台治理与成本</h4>
+          <p>管理后台做内容审核、通知去重、审计留痕与三级角色逐接口校验；
+             Redis Lua 原子计数限每人每日 50 次 AI 调用；对话历史按 6 轮 / 300 字符 / 工具 50 条裁剪；
+             SSE 断连即取消后台任务。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dlg-section">
+      <h3>关键取舍</h3>
+
+      <details class="qa">
+        <summary>为什么手写 ReAct，不用现成框架？</summary>
+        <div class="qa-body">
+          <p>这个场景只需要 5 个只读工具、最多 4 步，引入一套 Agent 框架的抽象成本高于收益。
+             手写能精确控制停止条件——步数满了怎么收、工具报错怎么退、什么时候必须把决定权交回用户。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>两个人同时用邀请码加入，会不会超员？</summary>
+        <div class="qa-body">
+          <p>会。计数和写入如果分两步查再做，中间就有竞态窗口。
+             所以加入家庭时用 <code>SELECT … FOR UPDATE</code> 锁住家庭行再计数，
+             配合成员唯一约束，重复提交也不会产生第二条成员记录。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>为什么只给 AI 只读工具？</summary>
+        <div class="qa-body">
+          <p>模型可以建议「把这袋食材标记为用完」，但不能自己改库存。
+             写操作全部回到业务接口、由用户点确认，AI 只负责查和提议。
+             这样即使模型判断错了，也不会留下不可撤销的脏数据。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>限流为什么用 Redis Lua？</summary>
+        <div class="qa-body">
+          <p>「读计数 → 判断 → 写回」三步如果分开执行，并发请求会同时通过。
+             Lua 脚本在 Redis 里原子执行，计数与判定不会被打断，配额才是真的 50 次。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="dlg-section">
+      <h3>结果</h3>
+      <div class="dlg-metrics">
+        <div><b>50+</b><span>核心用户（按实际使用人数）</span></div>
+        <div><b>59.6 → 6.0s</b><span>MCP 首次调用</span></div>
+        <div><b>381 + 12</b><span>后端 / 管理后台测试</span></div>
+      </div>
+      <p class="dlg-footnote">
+        已上线：<a href="https://menu.zmeety.cn" target="_blank" rel="noopener">menu.zmeety.cn</a>（H5 与微信小程序）。
+        家庭成员常共用一个账号，用户数按实际使用人数统计。
+      </p>
+    </section>
+
+    <section class="dlg-section">
+      <h3>技术栈</h3>
+      <ul class="chips chips-lg">
+        <li>UniApp</li><li>Vue 3</li><li>TypeScript</li><li>FastAPI</li><li>SQLAlchemy 2</li>
+        <li>PostgreSQL</li><li>Redis</li><li>MCP</li><li>Docker Compose</li><li>Nginx</li>
+      </ul>
+    </section>
+  </div>
+</dialog>
+
+<!-- ==================== 弹层：智愿通 ==================== -->
+<dialog class="project-dialog" id="p-zhiyuan" aria-labelledby="dlg-zhiyuan">
+  <div class="dlg-head">
+    <div class="dlg-kicker">03 / RAG 检索与问答质量工程</div>
+    <h2 id="dlg-zhiyuan">智愿通</h2>
+    <p class="dlg-sub">高考志愿填报智能体 · 检索与问答质量工程</p>
+    <button class="dlg-close" type="button" data-close aria-label="关闭">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="dlg-body">
+    <section class="dlg-section">
+      <h3>问题</h3>
+      <p>
+        高考志愿填报高峰期，学生与家长反复查询「这个分数能上什么学校」「这个专业有什么要求」，
+        招生老师每天重复回答。信息散落在各省考试院官网、高校招生网与 PDF 章程里，人工比对耗时且易错。
+      </p>
+      <p>
+        结构化语料含 13 省 65 万余行招生与分数位次，另有院校档案。
+        难点不是「能回答」，而是答案里的每个数字都能回溯出处，并且不该拒答的不拒答。
+      </p>
+    </section>
+
+    <section class="dlg-section">
+      <h3>做法</h3>
+      <div class="dlg-items">
+        <div class="dlg-item">
+          <h4>检索</h4>
+          <p>pgvector 向量召回 + tsvector 关键词召回双路并行，用 RRF 融合排序；
+             jieba 的领域词典从结构化库动态读取约 2,000 个高校名与 1,200 个专业名，
+             数据更新后自动跟随，「郑轻」「河大」这类简称不再漏检。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>可信与引用</h4>
+          <p>回答强制带编号引用，并做代码级校验；自建句级断言的忠实度评测，
+             报告带指纹防过期、逐题落盘可断点续跑。编造内容直接判不合格。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>事实保护</h4>
+          <p>LangGraph 状态机串联「抽取 → 校验 → 参数化 SQL → 冲稳保打标 → 事实校验」，
+             模型改写过的分数、位次一律打回重来。条件缺失时引导补全，而不是猜。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>评测与数据质量</h4>
+          <p>100 题评测集（39 基础 + 61 口语化难题）；147 条规则的数据质量引擎扫描 213,283 行，
+             定位 17 条失败规则，其中 8 条会直接导致答错。测试从 0 建到 1,416 条。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dlg-section">
+      <h3>关键取舍</h3>
+
+      <details class="qa">
+        <summary>为什么最后把 Rerank 关掉了？</summary>
+        <div class="qa-body">
+          <p>39 题四档消融里，从 wide 到 rerank 首位命中率提升不到 0.1 个百分点，延迟却增加
+             P50 +405ms / P95 +625ms。收益很小、成本是确定的，所以保留能力、默认关闭，
+             并把这个结论写进配置注释，避免以后有人再「顺手加上」。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>「19/35 → 0/35」到底是什么指标？</summary>
+        <div class="qa-body">
+          <p>是域门控的误拒答率，不是事实错误率。也就是 35 道本该能回答的问题里，
+             有 19 道被错误地拒绝了，修完之后是 0 道。</p>
+          <p>把它说成「事实错误」是错的——忠实度是断言级指标，没有这个分母。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>忠实度第三次为什么从 0.95 掉到 0.92？</summary>
+        <div class="qa-body">
+          <p>因为主动收紧了高风险断言的门控：宁可判得更严，也不放过可能改写分数位次的回答。
+             用 2.7 个点的忠实度换更硬的事实约束，这个交换是有意做的，不是回退。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>为什么一定要强制引用？</summary>
+        <div class="qa-body">
+          <p>志愿填报答错的代价太高。没有出处的回答无法核对，也无法在出问题时定位是数据错、检索错还是生成错。
+             强制引用把「信不信」变成「查不查得到」。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="dlg-section">
+      <h3>结果</h3>
+      <div class="dlg-metrics">
+        <div><b>22.3 → 7.0s</b><span>提问到出字（-69%）</span></div>
+        <div><b>19 → 0</b><span>误拒答（35 题中）</span></div>
+        <div><b>+2.56 / +2.13</b><span>首位命中率 / 排序质量（pt）</span></div>
+        <div><b>0.86 → 0.95 → 0.92</b><span>忠实度（末次主动收紧）</span></div>
+        <div><b>1,416</b><span>自动化测试</span></div>
+        <div><b>147</b><span>数据质量规则</span></div>
+      </div>
+      <p class="dlg-footnote">
+        内部验收版本，未做公网部署。指标均为本地评测实测。
+      </p>
+    </section>
+
+    <section class="dlg-section">
+      <h3>技术栈</h3>
+      <ul class="chips chips-lg">
+        <li>Python</li><li>FastAPI</li><li>LangGraph</li><li>PostgreSQL</li><li>pgvector</li>
+        <li>tsvector</li><li>RRF</li><li>jieba</li><li>SSE</li><li>pytest</li>
+      </ul>
+    </section>
+  </div>
+</dialog>
+
+
+<script src="assets/app.js?v=20261025n"></script>
+</body>
+</html>

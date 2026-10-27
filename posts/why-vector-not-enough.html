@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>为什么纯向量检索不够用：BM25 + RRF 混合检索实践 · zmeety</title>
+<meta name="description" content="从纯向量检索的两个短板出发，讲清 BM25 关键词检索、RRF 倒数排名融合，以及中文场景下 jieba 预分词的必要性。附 39 题消融实测数据。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025m">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">检索 / RAG</div>
+    <h1>为什么纯向量检索不够用：BM25 + RRF 混合检索实践</h1>
+    <p class="post-meta">2026-10-10 · 项目一 · 智愿通</p>
+
+    <div class="post-body">
+做高考志愿问答时，最先撞上的不是「模型会不会胡说」，而是「检索凭什么能把正确的那段话捞出来」。一开始我用的就是最朴素的向量检索，能跑，但一遇到高校名、专业名、批次名这类必须精确命中的词就开始漂。这篇记录我怎么把它换成混合检索，以及换完到底涨了多少。</p>
+
+  <h2>一、纯向量检索的两个短板</h2>
+
+  <p>向量检索（稠密检索）本质上是把文本映射到语义空间，然后比距离。它的强项是「换个说法也能找到」，但代价是<strong>对专名和精确术语不敏感</strong>。</p>
+
+  <p>举例：用户问「浙江 600 分能上什么」，语料里有一段讲「温州医科大学 2024 年在浙江的投档最低位次」。向量模型会认为这两句语义相近，把这段排上来——这是对的。但当语料里同时还有 30 所学校的类似段落时，向量打分很难把它们排出一个符合预期的顺序，因为它<em>不真的理解</em>「温州医科大学」这六个字必须整体精确匹配。</p>
+
+  <p>反过来，纯 BM25（稀疏检索、关键词检索）的短板正好相反：<strong>对口语化改写无能为力</strong>。用户问「学护理有前途吗」，语料里写的是「护理专业就业方向」，两边词面几乎不重叠，BM25 直接匹配不到。</p>
+
+  <div class="callout">
+    <p><strong>核心矛盾</strong>：向量擅长语义改写但专名会漂移；BM25 擅长精确命中但扛不住口语改写。任何一路单独用，都有一类问题注定解不了。</p>
+  </div>
+
+  <h2>二、为什么不能简单相加：RRF 的引入</h2>
+
+  <p>第一反应是「那我把两路分数加权平均不就行了」。这里有个坑：<strong>两路分数根本不是一个量纲</strong>。</p>
+
+  <p>向量那路给的是余弦相似度，通常落在 0～1 之间、小数点后三四位；BM25 那路给的是 tsvector 的打分，量级完全看词频和文档长度，可能是 0.03，也可能是 12.7。把 0.87 和 12.7 直接加权相加，权重调得再细也是拍脑袋。</p>
+
+  <p>正确做法是<strong>只融合排名，不融合分数</strong>——这就是 RRF（Reciprocal Rank Fusion，倒数排名融合）：</p>
+
+  <pre><code>score(d) = Σ  1 / (k + rank_i(d))
+          i∈{dense, sparse}</code></pre>
+
+  <p>每一个文档在两路里各有一个排名，把它换算成 <code>1/(k+排名)</code> 再叠加。<code>k</code> 是平滑常数（常用 60），作用是削弱头部排名的绝对优势。这样两路分数不需要可比，只需要各自的排序是对的。</p>
+
+  <h2>三、中文特有问题：PG 原生不切中文词</h2>
+
+  <p>我用的是 PostgreSQL 单库（结构化表 + 向量 + 全文检索同一个库）。但 PostgreSQL 原生的全文检索 <code>tsvector</code> 是<strong>按空格切词</strong>设计的，面对中文整句会把它当成一个大 token，等于没切。</p>
+
+  <p>所以入库和查询前都得自己接一层 <strong>jieba 预分词</strong>，并且要加载领域词典，否则「温州医科大学」会被切成「温州」「医科」「大学」，检索时反而引入噪声。我这边加载的词典规模是 <strong>1690 个高校名 + 1360 个专业名</strong>——这两个数字不是拍出来的，是从结构化表里的院校、专业字段去重统计出来的。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>环节</th><th>做法</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>入库</td><td>jieba + 领域词典预分词 → 写入 <code>tsvector</code> 字段 → 建 GIN 索引</td></tr>
+        <tr><td>查询</td><td>同样 jieba 预分词 → 构造 <code>to_tsquery</code> → 与向量检索并行</td></tr>
+        <tr><td>融合</td><td>两路各取 Top-K，RRF 按排名融合</td></tr>
+        <tr><td>回取</td><td>命中子块后按父块 ID 取回完整段落（父子块检索）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>四、实测：39 题消融</h2>
+
+  <p>光说「加了 BM25 更好」没有说服力，得做消融。我用了 39 道检索评测题，两档对比：naive 是纯稠密单路取 Top-7，hybrid 是 RRF 融合后取 Top-7。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>指标</th><th>naive（稠密单路）</th><th>hybrid（RRF 融合）</th><th>变化</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Recall@1</td><td>0.9231</td><td><strong>0.9487</strong></td><td class="up">+2.56pt</td></tr>
+        <tr><td>Recall@3</td><td>0.9744</td><td>0.9744</td><td class="dim">持平</td></tr>
+        <tr><td>Recall@7</td><td>1.0000</td><td>1.0000</td><td class="dim">持平</td></tr>
+        <tr><td>MRR</td><td>0.9466</td><td><strong>0.9679</strong></td><td class="up">+2.13pt</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>关键信息不在「涨了」，而在<strong>涨在哪里</strong>：Recall@3 和 Recall@7 两档完全一样，说明这两档早就饱和了（1.0000 也没法再涨）。提升全部集中在 Top-1。</p>
+
+  <p>翻译成人话：BM25 的作用不是「多捞回几个相关块」，而是<strong>把本来就在候选池里的正确块，顶到第一位</strong>。而 Top-1 恰恰是「给不给用户推荐」最敏感的位置——用户看到的第一条就是错的和第三条才是对的，体验完全不同。</p>
+
+  <div class="quote">
+    <p>纯向量对专名和精确术语会漂移，纯 BM25 对口语改写匹配不到，而且两路分数不同量纲不能直接相加。所以我加了 BM25 走 RRF 融合，Recall@1 从 0.9231 提到 0.9487。中文这块 PG 原生不切词，接了 jieba 预分词加领域词典。</p>
+    <cite>—— 面试时我会这么讲</cite>
+  </div>
+
+  <h2>五、顺带说说 Rerank：一次「收益不抵成本」的消融</h2>
+
+  <p>混合检索之后，很自然会想再加一层精排（Rerank）。我做了四档消融，而不是直接上线：</p>
+
+  <pre><code>naive   稠密单路 K=7             最朴素基线
+hybrid  RRF 融合 K=7             当前生产基线
+wide    RRF 召回 21 → 取前 7     ★ 对照档：池子与 rerank 相同，但不精排
+rerank  RRF 召回 21 → 精排取 7   要验证的档位</code></pre>
+
+  <p><strong>为什么必须加 wide 这个对照档</strong>：精排的常见用法是「召回放宽 → 精排收窄」，但候选池从 7 扩到 21 <em>本身</em>就可能带来提升。如果不设对照，你分不清涨的那部分是「重排序的功劳」还是「池子变宽的功劳」。</p>
+
+  <p>结果：</p>
+  <ul>
+    <li><strong>召回放宽无额外收益</strong>：hybrid → wide 完全一致，因为 <code>hybrid_search</code> 内部本来就用 <code>dense_k=20 + sparse_k=20</code>，取 21 和取 7 的前几条本就相同。</li>
+    <li><strong>rerank 增益很小，代价却确定</strong>：wide → rerank 首位命中率提升不到 0.1 个百分点，而延迟 P50 增加 405.2ms、P95 增加 625.3ms。</li>
+  </ul>
+
+  <p>到这里最容易得出的结论是「精排没用，删掉」。但我先分清了这是 bug 还是评测设计问题：</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>检验项</th><th>数据</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td>精排是否真的改变顺序</td><td>132/273 个排名槽位被动过（48.4%）</td><td>确实生效，不是静默降级</td></tr>
+        <tr><td>命中排名变化</td><td>改善与恶化基本互抵，净效果接近零</td><td>净效果 0</td></tr>
+        <tr><td>精排后仍未排第 1 的题</td><td>仅 2 题</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>根因：多数题目的正确答案已经稳定在第 1 位</strong>——这批题上精排没有施展空间。</p>
+
+  <p>所以结论不是「精排无效」，而是「<strong>现有题集对这个环节的区分度有限</strong>」。最终处理是<strong>保留能力、默认关闭</strong>（<code>RERANK_ENABLED=false</code>），等有更有区分度的题集再评估。</p>
+
+  <div class="callout">
+    <p>这次消融最大的价值，其实不是「找到了一个提升点」，而是<strong>及时否决了一个负收益投入</strong>——如果没设 wide 对照档，很可能把延迟涨了 400ms 的东西当成「优化」上线了。</p>
+  </div>
+
+  <h2>六、三条可复用的判断</h2>
+
+  <ol>
+    <li><strong>分数不同量纲，就只融合排名</strong>。RRF 的价值在于它绕开了「权重怎么调」这个无底洞。</li>
+    <li><strong>做消融要设对照档</strong>。想验证 A，就要有一个「只有 A 不同、其他都一样」的档位，否则提升归因不了。</li>
+    <li><strong>指标持平不等于方案无效</strong>。先问「是方案没起作用，还是评测集测不出差别」——前者删代码，后者留着等更好的评测。</li>
+  </ol>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-zhiyuan">智愿通 · 高考志愿填报智能体 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多 Agent 不是越多越好：拆分的边界在哪 · zmeety</title>
+<meta name="description" content="从一个 Agent 同时处理分诊、审查、排障时的上下文污染讲起，说明多智能体拆分的判据不是任务数量，而是上下文能否隔离、失败能否归因，以及为「拆」付出的三条工程代价。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025m">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">多智能体 / 编排</div>
+    <h1>多 Agent 不是越多越好：拆分的边界在哪</h1>
+    <p class="post-meta">2026-10-25 · 项目二 · DevFleet</p>
+
+    <div class="post-body">
+      <p class="lead">第一次把分诊、代码审查、构建排障塞进同一个 Agent 时，它并没有直接答错，而是给出了一种更难排查的答案：引用的是构建日志，结论却在讲代码风格。这段经历让我重新划了一遍多 Agent 的边界。</p>
+
+      <h2>一、单 Agent 撞墙的方式很安静</h2>
+
+      <p>一个 Agent 同时处理三类问题时，三类证据会挤进同一段上下文。表现不是报错，而是<strong>答案混着来</strong>：它确实检索到了有用的东西，也确实生了成，但两者的对应关系错了。</p>
+
+      <p>更麻烦的是出错之后无法归因。你不知道是检索没捞到、还是检索到了但被别的证据挤掉、还是模型自己把两段话拼在了一起。上下文越长，这个判断越难做。</p>
+
+      <h2>二、拆分的两个判据</h2>
+
+      <p>我的判断标准不是「任务有几类」，而是下面两条同时成立：</p>
+
+      <ul>
+        <li><strong>上下文能隔离</strong>：两类任务需要的证据集合基本不重叠，分开之后各自可以只带自己那段上下文。</li>
+        <li><strong>失败能归因</strong>：出了问题能明确指出是哪一个环节、哪一份证据导致的。</li>
+      </ul>
+
+      <p>如果两个任务共享同一份证据，或者失败之后无法分开定位，那拆开只会增加传递成本——多一次调度、多一次序列化、多一个可能崩的地方。</p>
+
+      <h2>三、拆完之后的编排</h2>
+
+      <p>分诊、审查、排障各交给一个专职 Agent；跨领域问题先由 Planner 拆成带依赖的任务，Orchestrator 按依赖并行调度，Observer 专门比对证据缺口与结论冲突，最后 Synthesis 合成一份可逐条核对的建议。</p>
+
+      <p>关键在 Observer：它不生成结论，只做两件事——指出哪条结论缺少证据、指出两条结论互相矛盾。这一层是拆分能否成立的前提，没有它，多 Agent 只是把混乱分散到了更多地方。</p>
+
+      <h2>四、拆的代价必须显式买单</h2>
+
+      <p>链路变长，失败点变多，中间结果还要传递。所以配了三条硬约束：</p>
+
+      <ul>
+        <li><strong>单任务 90 秒超时</strong>：避免某个 Agent 卡住整条链路。</li>
+        <li><strong>依赖失败沿链路传播</strong>：上游挂了就跳过下游，不带着残缺证据继续跑。</li>
+        <li><strong>Token 预算与调用熔断</strong>：给整条链路设一个成本上限。</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>一句话结论</strong>：拆分的收益来自「隔离」，不是来自「数量」。如果拆完不能隔离上下文、也不能归因失败，那只是把一个问题变成了三个。</p>
+      </div>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-devfleet">DevFleet · Multi-Agent 研发协作平台 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

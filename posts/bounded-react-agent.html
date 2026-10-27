@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手写一个有限的 ReAct Agent：为什么不用框架，以及边界怎么划 · zmeety</title>
+<meta name="description" content="单 Agent、有限工具、短上下文场景下，手写 ReAct 循环比引入框架更可控。记录工具权限、输出契约、SSE 生命周期与降级设计。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025m">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">AI / Agent</div>
+    <h1>手写一个有限的 ReAct Agent：为什么不用框架，以及边界怎么划</h1>
+    <p class="post-meta">2026-10-10 · 项目三 · 小家菜单</p>
+
+    <div class="post-body">
+小家菜单里的 AI 部分没有用 LangChain，也没有用 LangGraph，就是一个手写的 ReAct 循环。这篇说清楚三件事：为什么这样选、边界划在哪里、以及那些「模型不听话」的时候后端怎么兜。</p>
+
+  <h2>一、为什么不用框架</h2>
+
+  <p>先说结论：<strong>当前流程是单 Agent、有限工具、短上下文</strong>。这个规模下，手写循环能更直接地控制工具参数、权限、异常和最大步数，依赖和学习成本也更低。</p>
+
+  <p>反过来说，什么时候该上框架？如果将来出现这三类需求——<strong>跨天任务恢复、人工审批的中断与恢复、复杂的多 Agent 编排</strong>——再评估图编排框架。注意这是「需要了再上」，不是「为了技术名词而上」。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>组件</th><th>方向</th><th>在这个项目里的作用</th></tr></thead>
+      <tbody>
+        <tr><td>Agent</td><td>用户向应用提问</td><td>手写 ReAct 循环，决定是否调用业务工具</td></tr>
+        <tr><td>MCP 客户端</td><td>本项目向外</td><td>连接外部营养数据服务</td></tr>
+        <tr><td>MCP Server</td><td>外部客户端向内</td><td>暴露本项目的只读数据工具</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>这三者方向不同，不能混称为同一个组件。Agent 是面向用户的决策循环；MCP 客户端是出口；MCP Server 是入口。</p>
+
+  <h2>二、边界一：工具不接收模型指定的家庭 ID</h2>
+
+  <p>这是最重要的一条设计约束。</p>
+
+  <p>设想最坏情况：如果模型能自己传家庭 ID，或者工具内部直接拼 SQL，它就可能读到别人的数据。而且这种越权<strong>不会报错</strong>——只是返回了不该返回的行。</p>
+
+  <p>项目里的做法是：工具<strong>不接收</strong>模型指定的家庭 ID，而是拿已认证用户的上下文，统一调用 Service 层的成员权限检查和数据查询逻辑。这样普通 API、Agent 工具、管理后台三条入口复用同一套权限规则，不会有旁路。</p>
+
+  <pre><code># 错误做法：模型可以构造任意 space_id
+def get_fridge_items(space_id: int, user): ...
+    # ↑ 模型传什么就查什么
+
+# 正确做法：space_id 从已认证用户推导
+def get_fridge_items(user):
+    space_id = resolve_space_from_user(user)   # 权限在这条路径里
+    ...</code></pre>
+
+  <p>工具数量是 <strong>5 个只读工具</strong>，最多 4 次模型步骤，最后一步不再开放工具（实际可用工具轮次最多 3）。再次强调：<strong>这些是实现的边界参数，不代表拦截攻击的百分比</strong>。</p>
+
+  <h2>三、边界二：模型不返回 JSON 怎么办</h2>
+
+  <p>Agent 需要模型输出结构化的动作指令（调哪个工具、参数是什么），才能驱动循环。但<strong>提示词只能提高遵循概率，不能当作协议保证</strong>。</p>
+
+  <p>我在早期抽样里观察到大约 <strong>10% 的轮次</strong>出现格式漂移——模型调完工具之后，输出的不是约定好的 JSON，而是夹了自然语言解释、或者裹在代码围栏里。这一漂移的后果很具体：<em>前端动作卡片直接消失</em>，用户看到的就是一次「没有反应」的交互。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>方案</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td>只加强提示词</td><td>不能消除漂移，只是降低概率</td></tr>
+        <tr><td>让每个前端页面自己猜格式</td><td>会复制规则，且容易误判</td></tr>
+        <tr><td><strong>后端集中检测 + 一次 JSON 修复，失败时保留原文</strong></td><td>✅ 最终采用</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>关键是最后半句——<strong>修复失败时保留原文，而不是直接报错吞掉</strong>。用户看到一段格式不规范的文字，总好过看到一个空白回复。</p>
+
+  <h2>四、SSE 的生命周期比想象中麻烦</h2>
+
+  <p>Agent 的步骤推进需要流式推给前端，项目用的是 SSE 而不是 WebSocket：Agent 是服务端向客户端单向推送步骤和结果，SSE 已经够用，协议和实现成本都更低。</p>
+
+  <p>事件顺序约定为 <code>start → step* → message → done</code>，业务失败走 <code>error</code> 事件。不支持流式的平台，前端回落到一次性接口。</p>
+
+  <p>真正的坑在两个地方：</p>
+
+  <h3>坑 1：普通回调不能直接向异步生成器 yield</h3>
+
+  <p>工具调用是普通同步回调，SSE 生成器是异步的。中间需要一个 <code>asyncio.Queue</code> 做桥接——回调往队列里放，生成器从队列里取。</p>
+
+  <h3>坑 2：客户端断开后任务还在跑</h3>
+
+  <p>如果用户关掉页面或点了停止，而服务端的 Agent 任务还在继续，那几轮模型调用和工具调用就白烧了配额。处理方式是在客户端断开时<strong>取消 Agent 任务</strong>。</p>
+
+  <h2>五、降级：AI 不是主业务的单点</h2>
+
+  <p>这个项目里 AI 是「加分项」，不是「必经之路」。菜单、冰箱、家庭管理这些核心流程，AI 挂了也照样能用。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>失败情形</th><th>处理</th></tr></thead>
+      <tbody>
+        <tr><td>配置缺失（没有 Key）</td><td>返回明确的演示数据提示</td></tr>
+        <tr><td>外部请求超时 / MCP 不可用</td><td>走可解释降级，不伪装成真实识别</td></tr>
+        <tr><td>结构化解析失败</td><td>同上，结果必须标明来源</td></tr>
+        <tr><td>Redis 配额计数失败</td><td>放行</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>最后一条要特别说明：Redis 配额是<strong>成本保护</strong>，不是安全授权边界。所以它挂了就放行——服务的可用性优先于「省那几次调用」。这个取舍必须想清楚，否则容易在 Redis 故障时把整个 AI 功能也拖挂。</p>
+
+  <h3>营养数据的可信度标记</h3>
+
+  <p>AI 给的营养数据不能一律当事实，所以后端用三个来源标记区分：</p>
+
+  <ul>
+    <li><code>mcp_exact</code>——与数据源精确匹配；</li>
+    <li><code>mcp_derived</code>——根据主料和规则推导；</li>
+    <li><code>llm_estimate</code>——模型估算。</li>
+  </ul>
+
+  <p>关键点：<strong>这个标记由后端实际执行过的数据路径决定，不接受模型在 JSON 里自己声称「已核对」</strong>。模型说什么是它的事，来源标签由代码盖章。</p>
+
+  <h2>六、一个具体的数据匹配 bug</h2>
+
+  <p>最后记录一个很典型的例子。营养查询的候选匹配算法原来用「名称最短」作为优选规则——看起来像是个合理的启发式。</p>
+
+  <p>结果：猪肉匹配到了<strong>纯肥肉，816 kcal/100g</strong>，而整体肥瘦的代表值应该是 <strong>395 kcal/100g</strong>，错了整整一倍。</p>
+
+  <p>根因是「最短名称」这个规则<strong>没有语义依据</strong>，而且同长度候选又依赖上游返回顺序，结果会抖动。修复方式是先用「肥瘦 / 代表值」这类整体条目优先，再用稳定的名称排序消除同长度不确定性。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>食材</th><th>修复前</th><th>修复后</th></tr></thead>
+      <tbody>
+        <tr><td>猪肉</td><td>816（纯肥肉）</td><td><strong>395</strong>（肥瘦代表值）</td></tr>
+        <tr><td>牛肉</td><td>190</td><td>190（不变）</td></tr>
+        <tr><td>羊肉</td><td>198</td><td>198（不变）</td></tr>
+        <tr><td>鸡蛋 / 排骨 / 豆腐</td><td>138 / 278 / 81</td><td>不变（对照组）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>顺带一个容易忽略的点：<strong>规则修好了，旧的缓存还在返回错误值</strong>。因为缓存 key 用的是 v1，错误结果仍然命中了。处理方式是把缓存键版本升到 v2，让旧 key 自然失效——而不是逐条去删生产缓存。相应地，测试也不能再写死 v1，而要匹配版本格式，否则以后正常升级缓存版本会触发假报警。</p>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-menu">小家开饭啦 · 家庭饮食管理 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /_shots/
+
+Sitemap: https://zmeety.cn/sitemap.xml

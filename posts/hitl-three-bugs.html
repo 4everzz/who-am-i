@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>38 个单测全绿，功能一次都没触发过 · zmeety</title>
+<meta name="description" content="HITL 人工决策功能 38 个单测全绿、全量 977 passed，但真实链路上一次都没触发。三个 bug 叠成一条死链，记录排查过程与三条判据。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025m">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">测试 / 排障</div>
+    <h1>38 个单测全绿，功能一次都没触发过</h1>
+    <p class="post-meta">2026-10-10 · 项目一 · 智愿通</p>
+
+    <div class="post-body">
+这是整个项目里最值得讲的一个坑。我给一个 HITL（Human-in-the-Loop，人工介入决策）功能写了 38 个单元测试，全部通过，全量测试 977 passed。然后第一次跑真实链路——这个功能从头到尾一次都没触发过。修掉第一个 bug 立刻暴露第二个，修完第二个又暴露第三个，三个 bug 叠成了一条死链。</p>
+
+  <h2>一、现象：功能「存在」但「从未发生」</h2>
+
+  <p>这个 HITL 功能的设想很简单：当检索置信度不足、系统拿不准该给什么建议时，不要硬答，而是停下来让用户选补救方式（换年份、看相近专业、扩大检索范围）。</p>
+
+  <p>代码写完了，测试写了 38 个，全绿。链路接进了 SSE，前端卡片也做了。看起来一切正常。</p>
+
+  <p>但真实对话跑起来，它一次都没出现过。用户的每个问题都被系统直接回答，或者直接说「资料不足」，中间那个「请问您想怎么办」的环节，从来没有出现。</p>
+
+  <div class="callout">
+    <p><strong>第一条判据</strong>：「没报错」不等于「跑通了」。一条<strong>从未被执行过</strong>的分支，里面所有的 bug 都是隐形的——测试覆盖率再高也照不出来，因为测试根本没走到那儿。</p>
+  </div>
+
+  <h2>二、根因：三个 bug 叠成的死链</h2>
+
+  <p>把三个 bug 分开看，每一个都不算复杂。它们致命的地方在于<strong>串成了一条链</strong>——前一个掩盖后一个，每修一个才露出下一个。</p>
+
+  <h3>bug ① 哨兵字符串被当成了证据</h3>
+
+  <p>工具层在查不到结果时，会返回一个特定字符串作为「哨兵」（sentinel），表示「这里没有数据」。而 confidence（置信度）层判断「是否有证据」时，只检查了「上下文非空」，没有识别哨兵。</p>
+
+  <p>结果：工具明明返回的是「没查到」，但置信度层认为「有证据」，于是判定「可以正常回答」，从来不问人。HITL 的第一道触发条件就永远不成立。</p>
+
+  <pre><code># 问题简化后的样子
+contexts = tool_result          # "NO_RESULT_FOUND" 这种哨兵串
+if contexts:                    # 非空 → 判为有证据 ❌
+    confidence = "high"
+else:
+    trigger_hitl()              # 永远走不到这里</code></pre>
+
+  <h3>bug ② HITL 决策 ID 与 SSE 请求 ID 撞名</h3>
+
+  <p>哨兵问题修好后，系统终于开始问人了——前端卡片弹出来了。但用户点了「看相近专业」，后端找不到对应的决策。</p>
+
+  <p>原因是 HITL 的决策 ID 和 SSE 流使用的请求 ID 用了同一个命名空间，发生覆盖。用户提交的选择携带的 ID，和系统等待的 ID 不是一个。</p>
+
+  <h3>bug ③ 刷新页面恢复不出选项卡片</h3>
+
+  <p>ID 修好后，能选、能提交了。但只要用户刷新页面，正在等待选择的卡片就消失了——前端拿不到「当前有一个中断正在等待」这个状态，于是恢复逻辑失效。</p>
+
+  <h2>三、为什么 38 个单测全绿却没发现</h2>
+
+  <p>这是最值得复盘的地方。回头看，原有测试的问题很清楚：</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>问题</th><th>后果</th></tr></thead>
+      <tbody>
+        <tr><td>测试全是<strong>手搓 state 直接喂</strong>给判据函数</td><td>绕过了真实的 <code>_retrieval_contexts</code> 组装过程，测的是「判据逻辑」而不是「系统行为」</td></tr>
+        <tr><td>每个 bug 单独看都被 mock 掉了</td><td>哨兵串在测试里被构造得「不像哨兵」，ID 在测试里天然一致，刷新恢复在测试里压根没测</td></tr>
+        <tr><td>只验证了函数返回值，没验证「是否被调用」</td><td>参数存在不等于会被调用；返回值有了不等于用它的地方做了判断</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>四、修复与验证</h2>
+
+  <p>三个 bug 依次修完，测试规模从 <strong>977 → 995 → 1007 passed</strong>。但光增加测试还不够——得证明新测试真的有杀伤力，否则只是「又多了一堆永远绿的断言」。</p>
+
+  <p>这里用了<strong>变异测试</strong>：把修好的代码<em>故意改坏</em>，注入典型退化，看测试会不会变红。四组变异分别有 2/1/1/1 条测试变红——说明测试确实打在行为入口上，不是空转。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>变异注入</th><th>变红的测试数</th></tr></thead>
+      <tbody>
+        <tr><td>还原哨兵识别缺失</td><td>2</td></tr>
+        <tr><td>还原 ID 命名冲突</td><td>1</td></tr>
+        <tr><td>还原刷新恢复逻辑</td><td>1</td></tr>
+        <tr><td>还原置信度判据</td><td>1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>顺带修掉的一个「说了但没做」</h3>
+
+  <p>排查时还发现：HITL 提供「放宽检索条件再查一次」这个选项，点下去后端只回了一句「我放宽再查一次」，<strong>实际上并没有真的修改检索条件</strong>。用户以为系统重新查了，其实只是白跑一轮。</p>
+
+  <p>这类「说了但没做」的空转，比报错更隐蔽——它不报错、不崩溃，只是让功能看起来生效了。</p>
+
+  <h2>五、三条可复用判据</h2>
+
+  <ol>
+    <li><strong>「没报错」不等于「跑通了」</strong>。依赖状态流转的功能必须跑真实链路；从未执行的分支里所有 bug 都是隐形的。</li>
+    <li><strong>单测要穿过真实链路</strong>。手搓 state 喂判据函数，测的是判据不是系统。要让测试从真实入口进、真实出口出。</li>
+    <li><strong>变异测试是证明测试有杀伤力的唯一手段</strong>。断言要打在<em>最终产物</em>上（实际调用次数、最终报告行），不是函数签名或中间返回值。</li>
+  </ol>
+
+  <div class="quote">
+    <p>HITL 功能 38 个单测全绿、真实链路上一次都没触发过，三个 bug 叠成一条死链。它教给我一条判据：「没报错」不等于「跑通了」。</p>
+    <cite>—— 被问「这个项目最大的坑是什么」时的回答</cite>
+  </div>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-zhiyuan">智愿通 · 高考志愿填报智能体 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
