@@ -1821,3 +1821,145 @@ html.snap-on .pages .page.is-in > .wrap {
 .pages #work .project-grid { gap: 14px; margin-top: 14px; }
 .pages #work .side-stat { padding: 10px 0; }
 .pages #work h3 { font-size: 1.5rem; }
+
+
+/* ============================================================
+   夜间阅读模式
+   ============================================================ */
+[data-theme="dark"] {
+  --bg: #1b1711;
+  --bg-alt: #221d16;
+  --panel: #262019;
+  --panel-2: #2b241c;
+  --line: rgba(240, 230, 210, 0.14);
+  --line-2: rgba(240, 230, 210, 0.26);
+  --fg: #f0e6d2;
+  --dim: #cfc2aa;
+  --mute: #a99b82;
+  --accent: #d9744f;
+  --accent-dim: #e08a68;
+  --accent-soft: rgba(217, 116, 79, 0.14);
+  --accent-line: rgba(217, 116, 79, 0.42);
+}
+
+[data-theme="dark"] body { background: var(--bg); }
+
+/* 深色纸面：光斑换成暖朱，噪点改为叠加 */
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(900px 520px at 80% -8%, rgba(217, 116, 79, 0.10), transparent 62%),
+    radial-gradient(720px 460px at 4% 4%, rgba(217, 116, 79, 0.05), transparent 60%),
+    radial-gradient(640px 420px at 52% 104%, rgba(217, 116, 79, 0.04), transparent 66%),
+    repeating-linear-gradient(0deg, transparent 0 4px, rgba(255, 255, 255, 0.012) 4px 5px);
+}
+[data-theme="dark"] body::after { opacity: 0.16; mix-blend-mode: screen; }
+
+[data-theme="dark"] .brand-mark { background: #2b241c; color: var(--fg); }
+[data-theme="dark"] .site-header { background: rgba(27, 23, 17, 0.86); }
+
+[data-theme="dark"] .terminal {
+  background: linear-gradient(180deg, #241e17, #201a13);
+  box-shadow: 0 24px 50px -34px rgba(0, 0, 0, 0.9);
+}
+[data-theme="dark"] .terminal-bar { background: rgba(240, 230, 210, 0.05); }
+
+[data-theme="dark"] .project-card,
+[data-theme="dark"] .stack-card,
+[data-theme="dark"] .principles li {
+  background: linear-gradient(180deg, #262019, #221c15);
+}
+
+[data-theme="dark"] .contact-inner {
+  background: linear-gradient(180deg, rgba(38, 32, 25, 0.9), rgba(34, 28, 21, 0.95));
+}
+
+[data-theme="dark"] .project-dialog { background: #241e17; }
+[data-theme="dark"] .dlg-head { background: #2b241c; }
+[data-theme="dark"] .dlg-metrics > div { background: #2f271e; }
+[data-theme="dark"] .dlg-section h3 { color: var(--fg); }
+
+[data-theme="dark"] .post-body pre,
+[data-theme="dark"] .diff,
+[data-theme="dark"] .code-card { background: #241e17; }
+
+[data-theme="dark"] .quote { background: #262019; }
+[data-theme="dark"] .callout { background: rgba(217, 116, 79, 0.10); }
+
+[data-theme="dark"] .btn-primary { background: #b8552f; color: #fff8ea; }
+[data-theme="dark"] .btn-outline,
+[data-theme="dark"] .btn-ghost { border-color: var(--line-2); }
+[data-theme="dark"] .chips li { background: rgba(240, 230, 210, 0.06); }
+
+/* 开关按钮 */
+.theme-toggle {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 60;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--fg);
+  cursor: pointer;
+  box-shadow: 0 10px 26px -16px rgba(42, 30, 18, 0.6);
+  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease),
+              background 0.25s var(--ease), color 0.25s var(--ease);
+}
+.theme-toggle:hover { transform: translateY(-2px); border-color: var(--accent-line); }
+.theme-toggle:active { transform: translateY(0) scale(0.96); }
+.theme-toggle svg {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  transition: opacity 0.25s var(--ease), transform 0.35s var(--ease);
+}
+.theme-toggle .tt-sun { opacity: 0; transform: rotate(40deg) scale(0.8); }
+.theme-toggle .tt-moon { opacity: 1; transform: rotate(0) scale(1); }
+[data-theme="dark"] .theme-toggle .tt-sun { opacity: 1; transform: rotate(0) scale(1); }
+[data-theme="dark"] .theme-toggle .tt-moon { opacity: 0; transform: rotate(-40deg) scale(0.8); }
+
+/* 连点提示气泡 */
+.theme-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 78px;
+  z-index: 61;
+  max-width: 220px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 14px 34px -20px rgba(42, 30, 18, 0.7);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.theme-toast.is-on { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 560px) {
+  .theme-toggle { right: 14px; bottom: 14px; width: 42px; height: 42px; }
+  .theme-toast { right: 14px; bottom: 66px; }
+}
+
+
+/* 夜间：终端与代码块的写死色 */
+[data-theme="dark"] .t-cmd { color: #e8dcc4; }
+[data-theme="dark"] .t-key { color: #d99a6c; }
+[data-theme="dark"] .t-str { color: #9db884; }
+[data-theme="dark"] .t-path { color: #a99b82; }
+
+[data-theme="dark"] .post-body code {
+  background: rgba(240, 230, 210, 0.08);
+  color: #f0c9a8;
+}
+[data-theme="dark"] .post-body pre code { color: #d8cbb2; }
+[data-theme="dark"] .post-body th { background: rgba(240, 230, 210, 0.07); }
+[data-theme="dark"] .post-body td { border-color: var(--line); }
