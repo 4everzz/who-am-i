@@ -70,20 +70,47 @@ website/
 
 ## 四、部署
 
-```bash
-rsync -avz --delete --exclude '_shots' \
-  website/ root@47.114.62.82:/var/www/zmeety.cn/
+站点目录：`/var/www/zmeety`（注意不是 `zmeety.cn`）
+配置文件：`/etc/nginx/sites-enabled/zmeety.cn.conf`
+
+### 首次配置 SSH 免密
+
+```powershell
+Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub" | ssh root@47.114.62.82 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
+### 发布（本机没有 rsync，用 tar + scp）
+
+```powershell
+# 1. 服务器先备份
+ssh root@47.114.62.82 "tar -czf /root/backups/zmeety-$(date +%Y%m%d-%H%M).tgz -C /var/www/zmeety ."
+
+# 2. 本地打包（排除 .git）
+tar -czf site.tgz --exclude=.git -C website .
+
+# 3. 上传并解包覆盖
+scp site.tgz root@47.114.62.82:/tmp/zmeety-site.tgz
+ssh root@47.114.62.82 "cd /var/www/zmeety && tar -xzf /tmp/zmeety-site.tgz && rm -f /tmp/zmeety-site.tgz && chmod -R u=rwX,go=rX /var/www/zmeety"
+```
+
+解包是**覆盖**，不删旧文件。旧站遗留的多余文件（如 `posts/post.css`）留着无害，
+不要用 `rm -rf` 清空目录，避免误删 `.well-known` 导致证书续不上。
+
+### Nginx
+
 ```bash
-scp website/nginx.conf.example root@47.114.62.82:/etc/nginx/conf.d/zmeety.cn.conf
+scp website/nginx.conf.example root@47.114.62.82:/etc/nginx/sites-enabled/zmeety.cn.conf
 ssh root@47.114.62.82 "nginx -t && systemctl reload nginx"
 ```
 
-Nginx 配置里需要按实际情况改两处：`root`、证书路径
-（certbot 常见路径 `/etc/letsencrypt/live/zmeety.cn/`）。
+配置里已包含：HTTPS + HSTS、`error_page 404 /404.html`、静态资源 30 天缓存、HTML
+`expires -1`、gzip。若换域名，改 `server_name`、`root`、证书路径三处。
 
-若该域名已有站点配置，**只改 `root`**，不要整段覆盖。
+**配置改错时不要慌**，`nginx -t` 会拦住，回滚：
+
+```bash
+cp $(ls -t /root/backups/zmeety.cn.conf.*.bak | head -1) /etc/nginx/sites-enabled/zmeety.cn.conf
+```
 
 ## 五、验收
 
