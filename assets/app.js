@@ -318,15 +318,22 @@
     pages.forEach(function (p) { pageObserver.observe(p); });
 
     // 滚轮：任何情况下都先吃掉原生滚动，动画才不会被撕开
+    function modalOpen() {
+      return document.body.classList.contains('modal-open') ||
+             !!document.querySelector('dialog[open]');
+    }
+
     window.addEventListener('wheel', function (e) {
-      if (!wide.matches || Math.abs(e.deltaY) < 4) return;
+      if (!wide.matches) return;
+      if (modalOpen()) return;                 // 弹窗自己滚，别翻背景页
+      if (Math.abs(e.deltaY) < 4) return;
       e.preventDefault();
       if (animating) return;
       go(current + (e.deltaY > 0 ? 1 : -1));
     }, { passive: false });
 
     window.addEventListener('keydown', function (e) {
-      if (!wide.matches) return;
+      if (!wide.matches || modalOpen()) return;
       var k = e.key;
       if (k === 'PageDown' || k === 'ArrowDown') { e.preventDefault(); go(current + 1); }
       else if (k === 'PageUp' || k === 'ArrowUp') { e.preventDefault(); go(current - 1); }

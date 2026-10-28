@@ -1797,16 +1797,15 @@ html.snap-on .pages .page.is-in > .wrap {
 .pages #work .project-desc,
 .pages #work .project-points,
 .pages #work .side-note { display: none; }
-.pages #work .project-card { padding: 22px 24px; }
+
 .pages #work .project-featured { min-height: 0; }
 .pages #work .project-featured .project-main { justify-content: flex-start; }
-.pages #work .project-head,
-.pages #work .project-meta { margin-bottom: 10px; }
-.pages #work .project-sub { margin-bottom: 12px; }
-.pages #work .project-foot { margin-top: 14px; padding-top: 12px; }
-.pages #work .project-grid { gap: 14px; margin-top: 14px; }
+
+
+
+
 .pages #work .side-stat { padding: 10px 0; }
-.pages #work h3 { font-size: 1.5rem; }
+
 
 
 /* ============================================================
@@ -2012,8 +2011,8 @@ html.snap-on .pages .page.is-in > .wrap {
   flex: 1;
 }
 .pages #work .project-foot { margin-top: auto; }
-.pages #work .project-intro { font-size: 13px; line-height: 1.7; }
-.pages #work .project-grid { align-items: stretch; }
+
+
 
 
 /* ============================================================
@@ -2043,3 +2042,37 @@ html.snap-on .pages .page.is-in > .wrap {
     margin-bottom: 1.15em;
   }
 }
+
+
+/* ============================================================
+   作品页：加大呼吸感（覆盖之前的紧凑值）
+   ============================================================ */
+.pages #work .project-card {
+  padding: 26px 28px;
+  min-height: 300px;
+}
+.pages #work .project-meta { margin-bottom: 13px; }
+.pages #work .project-head,
+.pages #work .project-meta { margin-bottom: 13px; }
+.pages #work .project-sub { margin-bottom: 0; }
+.pages #work .project-intro {
+  margin-top: 17px;
+  font-size: 13.5px;
+  line-height: 1.88;
+  color: var(--dim);
+}
+.pages #work .project-foot {
+  margin-top: auto;
+  padding-top: 18px;
+}
+.pages #work .project-grid {
+  gap: 20px;
+  margin-top: 20px;
+}
+.pages #work .chips { gap: 6px; }
+.pages #work .chips li {
+  padding: 3px 9px;
+  font-size: 11.5px;
+}
+.pages #work h3 { font-size: 1.55rem; letter-spacing: -0.01em; }
+.pages #work .project-sub { font-size: 13px; color: var(--mute); }
