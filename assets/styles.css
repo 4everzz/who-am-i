@@ -2014,3 +2014,32 @@ html.snap-on .pages .page.is-in > .wrap {
 .pages #work .project-foot { margin-top: auto; }
 .pages #work .project-intro { font-size: 13px; line-height: 1.7; }
 .pages #work .project-grid { align-items: stretch; }
+
+
+/* ============================================================
+   正文段落：首行缩进两字
+   ============================================================ */
+.post-body > p,
+.post-body > section > p {
+  text-indent: 2em;
+  margin: 0 0 1.05em;
+}
+
+/* 列表、引用、表格、代码里的段落不缩进 */
+.post-body li,
+.post-body li p,
+.post-body blockquote p,
+.post-body .callout p,
+.post-body td p,
+.post-body th p,
+.post-body pre,
+.post-body figcaption {
+  text-indent: 0;
+}
+
+@media (max-width: 640px) {
+  .post-body > p,
+  .post-body > section > p {
+    margin-bottom: 1.15em;
+  }
+}
