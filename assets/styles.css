@@ -1789,8 +1789,8 @@ html.snap-on .pages .page.is-in > .wrap {
 
 /* 作品页压到一屏：只留结论，细节在弹层里 */
 .pages #work {
-  padding-top: 44px;
-  padding-bottom: 32px;
+  padding-top: 40px;
+  padding-bottom: 28px;
 }
 .pages #work .section-head { margin-bottom: 18px; }
 .pages #work .section-kicker { margin-bottom: 8px; }
@@ -2076,3 +2076,41 @@ html.snap-on .pages .page.is-in > .wrap {
 }
 .pages #work h3 { font-size: 1.55rem; letter-spacing: -0.01em; }
 .pages #work .project-sub { font-size: 13px; color: var(--mute); }
+
+
+/* ============================================================
+   DevFleet 两栏布局 + 简介分段节奏
+   ============================================================ */
+.pages #work .project-featured {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 40px;
+  align-items: stretch;
+}
+.pages #work .project-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 20px;
+  padding-left: 30px;
+  border-left: 1px solid var(--line);
+}
+.pages #work .project-aside .chips { gap: 6px; }
+.pages #work .project-aside .btn { align-self: flex-start; }
+
+.pages #work .project-intro + .project-intro { margin-top: 11px; }
+
+@media (max-width: 980px) {
+  .pages #work .project-featured {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .pages #work .project-aside {
+    border-left: 0;
+    padding-left: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

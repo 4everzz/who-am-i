@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
 <meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=20261025x">
+<link rel="stylesheet" href="assets/styles.css?v=20261025z">
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
@@ -155,7 +155,8 @@
 
           <h3>DevFleet</h3>
           <p class="project-sub">Multi-Agent 研发协作平台</p>
-          <p class="project-intro">一条 PR 躺了两天没人合，你得先翻任务背景、再看代码改动、回头查评审意见、顺手打开构建日志，最后去文档里确认设计约束——五个页面来回切，结论还是「再看看」。本项目专门针对这种跨系统的研发问答：把六类信息收进一个每句话都能给出处的资料库，直接回答该谁做、该不该合、这次构建为什么失败。</p>
+          <p class="project-intro">一条 PR 躺了两天没人合，你得先翻任务背景、再看代码改动、回头查评审意见、顺手打开构建日志，最后去文档里确认设计约束——五个页面来回切，结论还是「再看看」。</p>
+          <p class="project-intro">DevFleet 把这些收进一个每句话都能给出处的研发资料库：这个任务该谁做、这个改动该不该合、这次构建为什么失败，一次问清楚。</p>
 
           <p class="project-desc">
             判断一条 PR 能不能合并，研发要横跨任务、代码改动、评审意见、构建日志与项目文档反复比对。
@@ -169,17 +170,17 @@
             <li>写操作一律先落草稿，过权限校验与人工确认才真正调用 GitHub API，全程审计留痕。</li>
           </ul>
 
-          <div class="project-foot">
-            <ul class="chips" aria-label="技术栈">
-              <li>Python</li><li>FastAPI</li><li>LangGraph</li><li>Milvus</li><li>MCP</li><li>SSE</li><li>PostgreSQL</li><li>Next.js</li>
-            </ul>
-            <button class="btn btn-outline" type="button" data-open="p-devfleet">
-              设计与取舍
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </button>
-          </div>
         </div>
 
+        <div class="project-aside">
+          <ul class="chips" aria-label="技术栈">
+            <li>Python</li><li>FastAPI</li><li>LangGraph</li><li>Milvus</li><li>MCP</li><li>SSE</li><li>PostgreSQL</li><li>Next.js</li>
+          </ul>
+          <button class="btn btn-outline" type="button" data-open="p-devfleet">
+            设计与取舍
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
         </article>
 
       <div class="project-grid">
@@ -193,7 +194,8 @@
 
           <h3>小家开饭啦</h3>
           <p class="project-sub">家庭饮食管理与 AI 助手</p>
-          <p class="project-intro">晚上七点，三个人三种口味，谁都不想吃重复的，最后打开外卖软件刷了二十分钟——你家是不是也这样？本项目专门针对家庭饮食这件小事：把成员口味、冰箱库存和点单记录放在一起算，今天能做什么、还差什么要买，一次说清楚。</p>
+          <p class="project-intro">晚上七点，三个人三种口味，谁都不想吃重复的，最后打开外卖软件刷了二十分钟——你家是不是也这样？</p>
+          <p class="project-intro">饭小团是家里随叫随到的厨房助手：问一句「冰箱里还有什么」，它把菜单和库存一起翻出来；说一句「这周想吃清淡点」，它排好一周的用餐计划。吃完顺手记一笔，热量和口味偏好都攒在同一处，让每一顿饭都值得被记录。</p>
 
           <p class="project-desc">
             家庭成员的菜单、冰箱库存、收藏与点单集中到一处，不用再在群聊里反复确认「买什么、还剩什么」。
@@ -229,7 +231,8 @@
 
           <h3>智愿通</h3>
           <p class="project-sub">高考志愿填报智能体</p>
-          <p class="project-intro">你是否还在为了报志愿来回查五个平台——分数线在一个网站、专业位次在另一个、选科要求还得翻招生章程？本项目专门针对高考志愿填报：把分数先换算成位次，按冲稳保圈定院校，每条结论都带出处，查不到就说不知道，而不是编一个看起来合理的答案。</p>
+          <p class="project-intro">你是否还在为了报志愿来回查五个平台——分数线在一个网站、专业位次在另一个、选科要求还得翻招生章程？</p>
+          <p class="project-intro">本项目专门针对高考志愿填报：把分数先换算成位次，按冲稳保圈定院校，每条结论都带出处，查不到就说不知道，而不是编一个看起来合理的答案。</p>
 
           <p class="project-desc">
             把散落在考试院官网、高校招生网与院校档案里的招生信息，做成可问答的检索链路。
