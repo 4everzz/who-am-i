@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSE 断线之后，前端为什么收到半句话 · zmeety</title>
+<meta name="description" content="重连没有事件 ID 和游标，服务端从头推，前端把两段拼成一句——看起来像模型说胡话，实际是传输层的问题。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025z">
+<script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">流式 / 前端</div>
+    <h1>SSE 断线之后，前端为什么收到半句话</h1>
+    <p class="post-meta">2026-10-27 · 项目一 · DevFleet</p>
+
+    <div class="post-body">
+      <p class="lead">用户截图里出现了一句重复的话：「这个任务应该由应该由后端组负责」。第一反应是模型复读，查了日志才发现是断线重连把两段内容拼在了一起。</p>
+
+      <h2>一、EventSource 的自动重连</h2>
+
+      <p>浏览器对 SSE 断线会自动重连，这是它的优点，也是这个 bug 的来源。默认重连时它带一个 <code>Last-Event-ID</code> 请求头，但如果服务端从来没发过 <code>id:</code> 字段，这个头就是空的——服务端只能从头开始推。</p>
+
+      <p>前端已经渲染了前 200 字，重连后又收到前 200 字，于是变成重复。</p>
+
+      <h2>二、三个必须补的东西</h2>
+
+      <ul>
+        <li><strong>事件编号</strong>：每个 chunk 带递增 <code>id</code>，这是游标。</li>
+        <li><strong>断点续传</strong>：服务端读 <code>Last-Event-ID</code>，从下一个编号继续，而不是从头。</li>
+        <li><strong>前端去重</strong>：收到重复编号直接丢弃，作为最后一道保险。</li>
+      </ul>
+
+      <h2>三、还有一个 nginx 的坑</h2>
+
+      <p>本地调通了，上线还是断。原因是反向代理默认开了缓冲：<code>proxy_buffering on</code> 会把流攒着，等攒够一块再往下发，看起来像「卡住很久然后一次性吐出来」。要配 <code>proxy_http_version 1.1</code>、把 <code>Connection</code> 置空、<code>proxy_buffering off</code>，读超时也得放大。</p>
+
+      <div class="callout">
+        <p>流式接口的验收标准不是「本地能看到打字机效果」，而是「断网十秒再恢复，内容不重不漏」。</p>
+      </div>
+
+      <p>现在这条链路上线前的固定动作：拔网线十秒、切后台再回来、弱网限速三档，三个场景都要过。这几个动作比看一百遍代码有用。</p>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-devfleet">DevFleet · Multi-Agent 研发协作平台 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+<button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false" title="切换阅读模式">
+  <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
+<div class="theme-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="../assets/theme.js?v=20261027" defer></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 循环没有停止条件，就是在等事故 · zmeety</title>
+<meta name="description" content="max_steps、token 预算、墙钟上限、人工接管点——四道闸缺一道，跑飞只是时间问题。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025z">
+<script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">AI / 工程规范</div>
+    <h1>Agent 循环没有停止条件，就是在等事故</h1>
+    <p class="post-meta">2026-10-27 · 项目一 · DevFleet</p>
+
+    <div class="post-body">
+      <p class="lead">Agent 出事故，很少是因为「模型太笨」，多数是因为它在一个错误的方向上很努力，而系统没有机制让它停下来。</p>
+
+      <h2>一、一次真实的跑飞</h2>
+
+      <p>工具返回空结果，模型认为「再试一次可能就有了」，于是用几乎相同的参数又调了一遍。因为每次调用的参数略有不同，去重逻辑没拦住。四十分钟后 token 预算烧完，任务状态还是「进行中」。</p>
+
+      <p>事后看，代码里只有一句 <code>while True</code>，退出条件写在模型自己的判断里。模型的判断是不可靠的——它没有「我已经试过五次」这种跨轮记忆，除非你显式告诉它。</p>
+
+      <h2>二、四道闸，缺一不可</h2>
+
+      <ul>
+        <li><strong>步数上限</strong>：<code>max_steps</code> 到点强制收口，哪怕没得出结论，也要输出「当前进展 + 卡在哪」。</li>
+        <li><strong>token 预算</strong>：按累计消耗算，不是按单次。超了就降级成单轮回答。</li>
+        <li><strong>墙钟上限</strong>：用户等待有耐心上限，30 秒没结果就该给中间态，而不是让他盯着转圈。</li>
+        <li><strong>人工接管点</strong>：涉及写操作、对外发送、删除的动作，必须停在确认这一步。</li>
+      </ul>
+
+      <h2>三、重复调用要能被识别</h2>
+
+      <p>光有步数上限不够。第 3 步和第 7 步调同一个工具、传同一份参数，本质上是在原地打转。做法是给每次工具调用算一个签名（工具名 + 参数哈希），同一个签名出现两次就降级：告诉模型「这个调用刚才已经试过，返回为空，换一条路」。</p>
+
+      <div class="callout">
+        <p>有界自主不是限制能力，是让失败可预期。跑飞十分钟和跑飞四十秒，区别不在模型，在闸门。</p>
+      </div>
+
+      <p>现在这条链路的默认值：<code>max_steps=10</code>、单任务 token 预算、30 秒软超时给中间态、写操作双确认。参数看着保守，但它保证最坏情况下用户拿到的是一个明确的「没做成 + 原因」，而不是页面一直转。</p>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-devfleet">DevFleet · Multi-Agent 研发协作平台 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+<button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false" title="切换阅读模式">
+  <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
+<div class="theme-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="../assets/theme.js?v=20261027" defer></script>
+</body>
+</html>

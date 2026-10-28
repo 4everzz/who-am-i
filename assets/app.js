@@ -383,6 +383,46 @@
     }, { passive: true });
   }
 
+  /* ---------- 笔记分页 ---------- */
+  var notesList = document.getElementById('notesList');
+  var pageDots = document.querySelectorAll('.page-dot');
+
+  if (notesList && pageDots.length) {
+    var noteItems = Array.prototype.slice.call(notesList.querySelectorAll('.note-item'));
+    var perPage = 7;
+
+    function showNotePage(page) {
+      noteItems.forEach(function (el, i) {
+        var on = Math.floor(i / perPage) === page - 1;
+        el.classList.toggle('is-off', !on);
+
+        if (on) {
+          // 切回来时重播一次聚拢
+          el.classList.remove('is-in');
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () { el.classList.add('is-in'); });
+          });
+        }
+      });
+
+      pageDots.forEach(function (b) {
+        b.classList.toggle('is-active', Number(b.getAttribute('data-page')) === page);
+      });
+      notesList.setAttribute('data-active', page);
+    }
+
+    pageDots.forEach(function (b) {
+      b.addEventListener('click', function () {
+        showNotePage(Number(b.getAttribute('data-page')));
+      });
+    });
+
+    // 初始只显示第一页
+    noteItems.forEach(function (el, i) {
+      el.classList.toggle('is-off', i >= perPage);
+    });
+  }
+
   /* ---------- 页脚年份 ---------- */
   var year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());

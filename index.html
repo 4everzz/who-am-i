@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
 <meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=20261025z">
+<link rel="stylesheet" href="assets/styles.css?v=20261028a">
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
@@ -266,57 +266,111 @@
         <h2>技术笔记</h2>
       </div>
 
-      <div class="notes-list">
-        <a class="note-item" href="posts/why-vector-not-enough.html" data-reveal>
+      <div class="notes-list" id="notesList">
+        <a class="note-item" data-page="1" href="posts/why-vector-not-enough.html" data-reveal>
           <span class="note-kicker">检索 / RAG</span>
           <span class="note-body">
             <span class="note-title">为什么纯向量检索不够用：BM25 + RRF 混合检索实践</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" href="posts/hitl-three-bugs.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/hitl-three-bugs.html" data-reveal>
           <span class="note-kicker">测试 / 排障</span>
           <span class="note-body">
             <span class="note-title">38 个单测全绿，功能一次都没触发过</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" href="posts/dimension-mismatch.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/dimension-mismatch.html" data-reveal>
           <span class="note-kicker">排障 / 工程习惯</span>
           <span class="note-body">
             <span class="note-title">同一个错犯了五次：阈值与判据的量纲必须匹配</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" href="posts/eval-integrity.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/eval-integrity.html" data-reveal>
           <span class="note-kicker">评测 / 可信度</span>
           <span class="note-body">
             <span class="note-title">评测工具比业务代码更危险</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" href="posts/bounded-react-agent.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/bounded-react-agent.html" data-reveal>
           <span class="note-kicker">AI / Agent</span>
           <span class="note-body">
             <span class="note-title">手写一个有限的 ReAct Agent：为什么不用框架</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" href="posts/multi-agent-boundary.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/multi-agent-boundary.html" data-reveal>
           <span class="note-kicker">多智能体 / 编排</span>
           <span class="note-body">
             <span class="note-title">多 Agent 不是越多越好：拆分的边界在哪</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" href="posts/why-not-ragas.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/why-not-ragas.html" data-reveal>
           <span class="note-kicker">评测 / 依赖</span>
           <span class="note-body">
             <span class="note-title">为什么我不用 RAGAS：一次依赖降级的取舍</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
+        <a class="note-item" data-page="2" href="posts/mcp-cold-start.html" data-reveal>
+          <span class="note-kicker">性能 / MCP</span>
+          <span class="note-body">
+            <span class="note-title">MCP 首次调用 59.6 秒：三个瓶颈叠在一起</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" data-page="2" href="posts/false-refusal-zero.html" data-reveal>
+          <span class="note-kicker">评测 / 质量</span>
+          <span class="note-body">
+            <span class="note-title">19 个误拒答，是怎么一个个归零的</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" data-page="2" href="posts/agent-stop-conditions.html" data-reveal>
+          <span class="note-kicker">AI / 工程规范</span>
+          <span class="note-body">
+            <span class="note-title">Agent 循环没有停止条件，就是在等事故</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" data-page="2" href="posts/sse-reconnect.html" data-reveal>
+          <span class="note-kicker">流式 / 前端</span>
+          <span class="note-body">
+            <span class="note-title">SSE 断线之后，前端为什么收到半句话</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" data-page="2" href="posts/family-member-race.html" data-reveal>
+          <span class="note-kicker">并发 / 数据库</span>
+          <span class="note-body">
+            <span class="note-title">六个人同时点加入，家庭成员上限失效了</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" data-page="2" href="posts/prompt-as-code.html" data-reveal>
+          <span class="note-kicker">工程化 / Prompt</span>
+          <span class="note-body">
+            <span class="note-title">Prompt 改了没人知道，比改错更麻烦</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="note-item" data-page="2" href="posts/canary-metrics.html" data-reveal>
+          <span class="note-kicker">发布 / 可观测</span>
+          <span class="note-body">
+            <span class="note-title">灰度只放 5% 流量，该看哪三个指标</span>
+          </span>
+          <span class="note-arrow" aria-hidden="true">→</span>
+        </a>
       </div>
+
+      <nav class="notes-pager" aria-label="笔记分页">
+        <button type="button" class="page-dot is-active" data-page="1" aria-label="第 1 页">1</button>
+        <button type="button" class="page-dot" data-page="2" aria-label="第 2 页">2</button>
+      </nav>
     </div>
 
   </section>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP 首次调用 59.6 秒：三个瓶颈叠在一起 · zmeety</title>
+<meta name="description" content="冷启动第一次调 MCP 工具要等将近一分钟，第二次只要 6 秒。差的这 53 秒拆开看，是三件事各自付了一次性成本。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025z">
+<script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">性能 / MCP</div>
+    <h1>MCP 首次调用 59.6 秒：三个瓶颈叠在一起</h1>
+    <p class="post-meta">2026-10-26 · 项目三 · DevFleet</p>
+
+    <div class="post-body">
+      <p class="lead">第一次调用 MCP 工具，从发出请求到拿到结果用了 59.6 秒；同样的调用第二次只要 6.0 秒。这 53 秒的差不是网络抖动，是三件事各付了一次性成本，而它们叠在了同一个请求上。</p>
+
+      <h2>一、进程启动：约 18 秒</h2>
+
+      <p>MCP 服务端用 stdio 传输，意味着每次拉起都要新起一个 Python 进程、导入全部依赖、初始化客户端。冷启动时这些开销全算在第一个请求头上。用<code>python -X importtime</code> 看了一遍，光是向量库和 HTTP 客户端的导入就占了十秒出头。</p>
+
+      <h2>二、握手与工具发现：约 4 秒</h2>
+
+      <p><code>initialize</code> 协商能力，紧接着 <code>tools/list</code> 把工具清单和 JSON Schema 全部返回。工具不多，但 schema 描述写得细，一坨结构体来回两趟，四秒就没了。这部分每次连接都要重来一遍。</p>
+
+      <h2>三、首次检索：约 30 秒</h2>
+
+      <p>这一项最容易被忽略。向量集合没有预热，第一次查询要触发索引加载，冷加载比后续查询慢一个数量级。日志里那条 31 秒的 span，几乎全是等 Milvus 把段加载进内存。</p>
+
+      <h2>四、把一次性成本挪到别处</h2>
+
+      <ul>
+        <li><strong>守护进程常驻</strong>：服务端不再随请求启停，启动成本从每次变成每次部署。</li>
+        <li><strong>工具清单缓存</strong>：<code>tools/list</code> 的结果按版本缓存，连接时只做能力协商。</li>
+        <li><strong>启动即预热</strong>：进程起来后立刻发一条轻量查询把集合加载进来，别等第一个真实用户。</li>
+      </ul>
+
+      <p>三项做完，首次调用从 59.6 秒降到 6.0 秒，和第二次的耗时基本一致——说明冷启动的额外开销已经被摊平了。</p>
+
+      <div class="callout">
+        <p>冷启动的耗时永远落在第一个用户身上。如果你的产品是「打开就能用」，那这个成本必须提前付掉，不能留给线上。</p>
+      </div>
+
+      <p>这类优化没有算法含量，全靠把时间线拆开看：哪一段是每次都要付的、哪一段只付一次、哪一段可以提前付。拆清楚之后，能挪的挪走，剩下的才是真成本。</p>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-devfleet">DevFleet · Multi-Agent 研发协作平台 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+<button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false" title="切换阅读模式">
+  <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
+<div class="theme-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="../assets/theme.js?v=20261027" defer></script>
+</body>
+</html>

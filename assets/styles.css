@@ -2114,3 +2114,43 @@ html.snap-on .pages .page.is-in > .wrap {
     justify-content: space-between;
   }
 }
+
+
+/* ============================================================
+   笔记分页
+   ============================================================ */
+.note-item.is-off { display: none; }
+
+.pages #notes .note-item { padding-top: 20px; padding-bottom: 20px; }
+.pages #notes .notes-pager { margin-top: 18px; }
+
+.notes-pager {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 26px;
+}
+.page-dot {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mute);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease),
+              border-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.page-dot:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.page-dot.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff8ea;
+}
+[data-theme="dark"] .page-dot.is-active { color: #1b1711; }

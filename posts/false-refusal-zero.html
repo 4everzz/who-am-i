@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>19 个误拒答，是怎么一个个归零的 · zmeety</title>
+<meta name="description" content="不是调一个阈值就完事。19 条错例逐条归类，五类原因对应五种修法，改完还要确认没有把误答换进来。">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/styles.css?v=20261025z">
+<script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-text">
+        zmeety
+        <span class="brand-sub">个人小站</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="../index.html#work">作品</a>
+      <a href="../index.html#notes">笔记</a>
+      <a href="../index.html#stack">技能</a>
+      <a href="../index.html#about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post-main">
+  <article class="post">
+    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <div class="post-kicker">评测 / 质量</div>
+    <h1>19 个误拒答，是怎么一个个归零的</h1>
+    <p class="post-meta">2026-10-27 · 项目二 · 智愿通</p>
+
+    <div class="post-body">
+      <p class="lead">35 道题的评测集里，有 19 道本来能答的问题被系统拒答了。这个数字听起来像「调个阈值」就能解决，实际动手才发现是五类完全不同的原因。</p>
+
+      <h2>一、先按原因分组，别看总数</h2>
+
+      <p>把 19 条错例逐条打开，标注它卡在哪一步：</p>
+
+      <ul>
+        <li><strong>简称没收录</strong>：用户说「郑大」，词典里只有「郑州大学」，检索直接落空。</li>
+        <li><strong>追问过严</strong>：缺一个非关键参数（比如没说批次）就触发追问，其实按位次能推。</li>
+        <li><strong>召回不足</strong>：问题涉及三个院校对比，单轮检索只取回一个。</li>
+        <li><strong>校验误伤</strong>：模型答案和证据措辞不同但意思一致，被事实校验判成矛盾。</li>
+        <li><strong>意图识别错</strong>：把「这个分数能上吗」识别成闲聊，直接走了兜底回复。</li>
+      </ul>
+
+      <p>五类里，三类的修法完全不同：词典、流程、检索参数。混在一起看总数，只会得出「效果不好」这种没法执行的结论。</p>
+
+      <h2>二、逐类修，每类都要能回滚</h2>
+
+      <p>简称问题不是手工加词，而是从结构化库动态生成——院校全称、简称、曾用名一起进索引，新数据进来词典自动更新。追问逻辑放宽到「能从已有信息推导的参数不追问」。召回不足的题改成按子问题拆查询，再合并结果。</p>
+
+      <p>校验误伤这一类最微妙：把「字面一致」放宽成「数值一致」，只对分数、位次、比例这类硬数字做严格比对，描述性文字不再要求逐字匹配。</p>
+
+      <h2>三、19 到 0，但要看另一条曲线</h2>
+
+      <p>改完重跑，误拒答 19 → 0。但只看这个数字是有风险的——如果系统变得「什么都敢答」，误答率会涨。所以同一轮同时看了误答：0 → 0，没有恶化。</p>
+
+      <div class="callout">
+        <p>质量指标要成对看。只压拒答，系统会变得过度自信；只压误答，系统会变得什么都不敢说。两条曲线一起动，才说明真的改对了。</p>
+      </div>
+
+      <p>现在这套评测每次改动都跑，报告带指纹：评测集、Prompt、模型、代码任何一项变了，旧报告自动失效。不然拿两周前的分数证明今天没退化，是自欺欺人。</p>
+    </div>
+
+    <div class="post-end">
+      <div class="post-related">
+        <span class="post-related-label">相关项目</span>
+        <a href="../index.html#p-zhiyuan">智愿通 · 高考志愿填报智能体 <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 zmeety.cn</p>
+    <p class="footer-note"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a></p>
+  </div>
+</footer>
+
+<button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false" title="切换阅读模式">
+  <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
+<div class="theme-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="../assets/theme.js?v=20261027" defer></script>
+</body>
+</html>
