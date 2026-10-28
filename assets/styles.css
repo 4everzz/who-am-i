@@ -2121,18 +2121,18 @@ html.snap-on .pages .page.is-in > .wrap {
    ============================================================ */
 .note-item.is-off { display: none; }
 
-.pages #notes .note-item { padding-top: 20px; padding-bottom: 20px; }
-.pages #notes .notes-pager { margin-top: 18px; }
+.pages #notes .note-item { padding-top: 26px; padding-bottom: 26px; }
+.pages #notes .notes-pager { margin-top: 30px; }
 
 .notes-pager {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   margin-top: 26px;
 }
 .page-dot {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--line-2);
   border-radius: 50%;
   background: transparent;

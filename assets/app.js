@@ -389,7 +389,7 @@
 
   if (notesList && pageDots.length) {
     var noteItems = Array.prototype.slice.call(notesList.querySelectorAll('.note-item'));
-    var perPage = 7;
+    var perPage = 5;
 
     function showNotePage(page) {
       noteItems.forEach(function (el, i) {
