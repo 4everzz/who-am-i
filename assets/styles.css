@@ -1254,14 +1254,8 @@ body.modal-open { overflow: hidden; }
 
 /* ---------------- 减少动效 ---------------- */
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  /* 只停循环播放的装饰动画；一次性的过渡是空间导航的一部分，保留 */
+  .scroll-hint-line { animation: none; }
   [data-reveal] { opacity: 1; transform: none; }
 }
 
@@ -1686,7 +1680,7 @@ html.snap-on body { overscroll-behavior-y: contain; }
 /* 整页轻微收缩，配合子元素聚拢（仅在 JS 启用吸附后生效，避免脚本失败时内容不可见） */
 html.snap-on .pages .page > .wrap {
   transform: scale(1.014);
-  transition: transform 1s var(--ease);
+  transition: transform 0.72s var(--ease);
 }
 html.snap-on .pages .page.is-in > .wrap {
   transform: scale(1);
@@ -1702,8 +1696,8 @@ html.snap-on .pages .page.is-in > .wrap {
 [data-reveal] {
   opacity: 0;
   transform: translate3d(var(--fx, 0px), var(--fy, 24px), 0) scale(var(--fs, 1));
-  transition: opacity 0.62s var(--ease) var(--rd, 0ms),
-              transform 0.8s var(--ease) var(--rd, 0ms);
+  transition: opacity 0.55s var(--ease) var(--rd, 0ms),
+              transform 0.7s var(--ease) var(--rd, 0ms);
 }
 [data-reveal].is-in {
   opacity: 1;
@@ -1790,14 +1784,7 @@ html.snap-on .pages .page.is-in > .wrap {
   .scroll-hint { display: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal] {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-  .pages .page > .wrap { transform: none; opacity: 1; transition: none; }
-}
+
 
 
 /* 作品页压到一屏：只留结论，细节在弹层里 */

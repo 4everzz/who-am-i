@@ -84,7 +84,7 @@
 
   function runCounter(el) {
     var target = parseFloat(el.getAttribute('data-count'));
-    var duration = 1100;
+    var duration = 900;
     var start = null;
 
     function step(ts) {
@@ -98,7 +98,7 @@
   }
 
   if (counters.length) {
-    if (reduceMotion || !('IntersectionObserver' in window)) {
+    if (!('IntersectionObserver' in window)) {
       counters.forEach(function (el) {
         el.textContent = counterText(el, parseFloat(el.getAttribute('data-count')));
       });
@@ -111,7 +111,7 @@
           runCounter(entry.target);
           countObserver.unobserve(entry.target);
         });
-      }, { threshold: 0.5 });
+      }, { threshold: 0.3 });
       counters.forEach(function (el) { countObserver.observe(el); });
     }
   }
@@ -231,7 +231,7 @@
     });
   }
 
-  /* ---------- 电脑端翻页：平滑滚动 + 聚拢 ---------- */
+  /* ---------- 电脑端翻页：自定义缓动，不被原生滚动打断 ---------- */
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
   var pagerIdx = document.getElementById('pagerIdx');
   var pagerRail = document.getElementById('pagerRail');
@@ -264,8 +264,31 @@
       });
     });
 
-    var locked = false;
     var current = 0;
+    var animating = false;
+    var animToken = 0;
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function scrollToY(target, duration) {
+      var startY = window.pageYOffset;
+      var dist = target - startY;
+      if (Math.abs(dist) < 2) { animating = false; return; }
+
+      var token = ++animToken;
+      var t0 = performance.now();
+
+      function frame(now) {
+        if (token !== animToken) return;          // 被新动画接管
+        var p = Math.min((now - t0) / duration, 1);
+        window.scrollTo(0, startY + dist * easeInOutCubic(p));
+        if (p < 1) requestAnimationFrame(frame);
+        else animating = false;
+      }
+      requestAnimationFrame(frame);
+    }
 
     function setPage(i) {
       current = i;
@@ -275,37 +298,35 @@
       }
     }
 
-    function go(i, instant) {
+    function go(i, force) {
       if (i < 0 || i >= pages.length) return;
-      locked = true;
+      if (animating && !force) return;
+      animating = true;
       setPage(i);
       var head = document.querySelector('.site-header');
       var offset = head ? head.offsetHeight : 0;
-      window.scrollTo({
-        top: Math.max(0, pages[i].offsetTop - offset),
-        behavior: instant ? 'auto' : 'smooth'
-      });
-      setTimeout(function () { locked = false; }, 780);
+      scrollToY(Math.max(0, pages[i].offsetTop - offset), 680);
     }
 
     var pageObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
         entry.target.classList.add('is-in');
-        if (!locked) setPage(pages.indexOf(entry.target));
+        if (!animating) setPage(pages.indexOf(entry.target));
       });
     }, { threshold: 0.45 });
     pages.forEach(function (p) { pageObserver.observe(p); });
 
-    // 滚轮：一格一页，交给平滑滚动带出过渡
+    // 滚轮：任何情况下都先吃掉原生滚动，动画才不会被撕开
     window.addEventListener('wheel', function (e) {
-      if (!wide.matches || locked || Math.abs(e.deltaY) < 6) return;
+      if (!wide.matches || Math.abs(e.deltaY) < 4) return;
       e.preventDefault();
+      if (animating) return;
       go(current + (e.deltaY > 0 ? 1 : -1));
     }, { passive: false });
 
     window.addEventListener('keydown', function (e) {
-      if (!wide.matches || locked) return;
+      if (!wide.matches) return;
       var k = e.key;
       if (k === 'PageDown' || k === 'ArrowDown') { e.preventDefault(); go(current + 1); }
       else if (k === 'PageUp' || k === 'ArrowUp') { e.preventDefault(); go(current - 1); }
@@ -315,8 +336,8 @@
 
     // 拖滚动条时同步页码
     window.addEventListener('scroll', function () {
-      if (locked || !wide.matches) return;
-      var y = window.scrollY;
+      if (animating || !wide.matches) return;
+      var y = window.pageYOffset;
       var best = 1e9;
       var idx = current;
       pages.forEach(function (p, i) {
@@ -326,21 +347,20 @@
       if (idx !== current) setPage(idx);
     }, { passive: true });
 
-    // 导航与首屏按钮
+    // 导航与首屏按钮：允许打断当前动画，点了就立刻转向
     document.querySelectorAll('.nav a[href^="#"], .hero-actions a[href^="#"]').forEach(function (a) {
       a.addEventListener('click', function (e) {
         var el = document.querySelector(a.getAttribute('href'));
         var i = pages.indexOf(el);
         if (i < 0) return;
         e.preventDefault();
-        go(i);
+        go(i, true);
       });
     });
 
-    // 深链直接打开某一页
     if (location.hash) {
-      var target = document.querySelector(location.hash);
-      var idx = pages.indexOf(target);
+      var targetEl = document.querySelector(location.hash);
+      var idx = pages.indexOf(targetEl);
       if (idx > 0) setTimeout(function () { go(idx, true); }, 60);
     }
 
@@ -352,7 +372,7 @@
     if (wide.addEventListener) wide.addEventListener('change', syncMode);
 
     window.addEventListener('scroll', function () {
-      if (hint) hint.classList.toggle('is-off', window.scrollY > window.innerHeight * 0.25);
+      if (hint) hint.classList.toggle('is-off', window.pageYOffset > window.innerHeight * 0.25);
     }, { passive: true });
   }
 
