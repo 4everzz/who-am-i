@@ -423,6 +423,27 @@
     });
   }
 
+  /* ---------- 首屏：指针处纸面提亮 ---------- */
+  var heroEl = document.querySelector('.hero');
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (heroEl && fine && !reduceMotion) {
+    var heroRaf = null;
+    heroEl.addEventListener('mousemove', function (e) {
+      if (heroRaf) return;
+      heroRaf = requestAnimationFrame(function () {
+        var r = heroEl.getBoundingClientRect();
+        heroEl.style.setProperty('--hx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+        heroEl.style.setProperty('--hy', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+        heroEl.classList.add('is-lit');
+        heroRaf = null;
+      });
+    });
+    heroEl.addEventListener('mouseleave', function () {
+      heroEl.classList.remove('is-lit');
+    });
+  }
+
   /* ---------- 页脚年份 ---------- */
   var year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());
