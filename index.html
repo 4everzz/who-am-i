@@ -18,8 +18,8 @@
 <meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
 <meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=20261025u">
-<script>try{var t=localStorage.getItem('zmeety-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/styles.css?v=20261025v">
+<script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
 
@@ -155,6 +155,7 @@
 
           <h3>DevFleet</h3>
           <p class="project-sub">Multi-Agent 研发协作平台</p>
+          <p class="project-intro">一条 PR 躺了两天没人合，你得先翻任务背景、再看代码改动、回头查评审意见、顺手打开构建日志，最后去文档里确认设计约束——五个页面来回切，结论还是「再看看」。本项目专门针对这种跨系统的研发问答：把六类信息收进一个每句话都能给出处的资料库，直接回答该谁做、该不该合、这次构建为什么失败。</p>
 
           <p class="project-desc">
             判断一条 PR 能不能合并，研发要横跨任务、代码改动、评审意见、构建日志与项目文档反复比对。
@@ -179,22 +180,7 @@
           </div>
         </div>
 
-        <div class="project-side">
-          <div class="side-stat">
-            <div class="side-num">209</div>
-            <div class="side-label">项自动化测试<br>全部通过</div>
-          </div>
-          <div class="side-stat">
-            <div class="side-num">6</div>
-            <div class="side-label">类研发数据<br>统一接入</div>
-          </div>
-          <div class="side-stat">
-            <div class="side-num">5<span class="side-arrow">→</span>1</div>
-            <div class="side-label">合并审查从翻 5 个页面<br>到 1 个页面拿到结论</div>
-          </div>
-          <div class="side-note">从架构、开发到部署，独立完成</div>
-        </div>
-      </article>
+        </article>
 
       <div class="project-grid">
         <!-- 小家开饭啦 -->
@@ -207,6 +193,7 @@
 
           <h3>小家开饭啦</h3>
           <p class="project-sub">家庭饮食管理与 AI 助手</p>
+          <p class="project-intro">晚上七点，三个人三种口味，谁都不想吃重复的，最后打开外卖软件刷了二十分钟——你家是不是也这样？本项目专门针对家庭饮食这件小事：把成员口味、冰箱库存和点单记录放在一起算，今天能做什么、还差什么要买，一次说清楚。</p>
 
           <p class="project-desc">
             家庭成员的菜单、冰箱库存、收藏与点单集中到一处，不用再在群聊里反复确认「买什么、还剩什么」。
@@ -218,11 +205,6 @@
             <li>手写 ReAct 循环，只开 5 个只读工具、最多 4 步收口，写入一律由用户确认后执行。</li>
             <li><code>SELECT … FOR UPDATE</code> 锁行计数，收敛并发加入家庭的成员上限竞态。</li>
           </ul>
-
-          <div class="mini-stats">
-            <div><b>59.6s → 6.0s</b><span>MCP 首次调用</span></div>
-            <div><b>381 + 12</b><span>后端 / 后台测试</span></div>
-          </div>
 
           <div class="project-foot">
             <ul class="chips" aria-label="技术栈">
@@ -247,6 +229,7 @@
 
           <h3>智愿通</h3>
           <p class="project-sub">高考志愿填报智能体</p>
+          <p class="project-intro">你是否还在为了报志愿来回查五个平台——分数线在一个网站、专业位次在另一个、选科要求还得翻招生章程？本项目专门针对高考志愿填报：把分数先换算成位次，按冲稳保圈定院校，每条结论都带出处，查不到就说不知道，而不是编一个看起来合理的答案。</p>
 
           <p class="project-desc">
             把散落在考试院官网、高校招生网与院校档案里的招生信息，做成可问答的检索链路。
@@ -258,12 +241,6 @@
             <li>LangGraph 状态机串联抽取、校验、SQL、打标与事实校验，模型改写的分数位次直接打回。</li>
             <li>自建 100 题评测集与句级断言评测，报告带指纹防过期、可断点续跑。</li>
           </ul>
-
-          <div class="mini-stats">
-            <div><b>19 → 0</b><span>误拒答 / 35 题</span></div>
-            <div><b>+2.56</b><span>首位命中率 pt</span></div>
-            <div><b>100%</b><span>引用准确率</span></div>
-          </div>
 
           <div class="project-foot">
             <ul class="chips" aria-label="技术栈">
@@ -451,10 +428,6 @@
           这里是一个 AI Agent 开发者的工作台：一边放做出来的东西，一边放做的时候想明白的事。
           项目都真实跑过，笔记里的数字都能在对应的项目里找到出处。
         </p>
-        <p>
-          站点是手写的 HTML / CSS / JS，没有框架、没有构建步骤、没有统计脚本。
-          内容不定期更新，旧文章不做删改，只在必要时补注。
-        </p>
 
         <div class="about-contact">
           <a class="btn btn-primary" href="mailto:2874951005@qq.com">2874951005@qq.com</a>
@@ -471,13 +444,6 @@
   </section>
 
 </main>
-
-<!-- 翻页指示 -->
-<div class="pager" aria-hidden="true">
-  <span class="pager-idx" id="pagerIdx">01</span>
-  <span class="pager-total">/ 06</span>
-  <span class="pager-rail"><i id="pagerRail"></i></span>
-</div>
 
 <footer class="site-footer">
   <div class="wrap footer-inner">

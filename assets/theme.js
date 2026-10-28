@@ -17,7 +17,7 @@
   if (!root.getAttribute('data-theme')) {
     var saved = null;
     try { saved = localStorage.getItem(KEY); } catch (e) { /* 隐私模式 */ }
-    apply(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    apply(saved || 'light');
   }
 
   if (!btn) return;

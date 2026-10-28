@@ -1986,3 +1986,31 @@ html.snap-on .pages .page.is-in > .wrap {
 /* 夜间：项目侧栏 */
 [data-theme="dark"] .project-side { background: rgba(240, 230, 210, 0.055); }
 [data-theme="dark"] .side-label { color: var(--dim); }
+
+
+/* ============================================================
+   项目简介（反问式）与卡片排版
+   ============================================================ */
+.project-intro {
+  margin: 14px 0 0;
+  max-width: 68ch;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--dim);
+}
+
+/* 侧栏统计已移除，featured 改单列 */
+.pages #work .project-featured { display: block; }
+.pages #work .project-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 292px;
+}
+.pages #work .project-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.pages #work .project-foot { margin-top: auto; }
+.pages #work .project-intro { font-size: 13px; line-height: 1.7; }
+.pages #work .project-grid { align-items: stretch; }
