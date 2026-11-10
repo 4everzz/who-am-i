@@ -6,7 +6,7 @@
 <title>手写一个有限的 ReAct Agent：为什么不用框架，以及边界怎么划 · zmeety</title>
 <meta name="description" content="单 Agent、有限工具、短上下文场景下，手写 ReAct 循环比引入框架更可控。记录工具权限、输出契约、SSE 生命周期与降级设计。">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/styles.css?v=20261028c">
+<link rel="stylesheet" href="../assets/styles.css?v=20261110f">
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
@@ -20,12 +20,18 @@
         <span class="brand-sub">个人小站</span>
       </span>
     </a>
-    <nav class="nav" aria-label="主导航">
+    <nav class="nav" id="nav" aria-label="主导航">
       <a href="../index.html#work">作品</a>
       <a href="../index.html#notes">笔记</a>
       <a href="../index.html#stack">技能</a>
       <a href="../index.html#about">关于</a>
     </nav>
+
+    <div class="header-actions">
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="切换导航菜单">
+        <span></span><span></span>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -37,7 +43,7 @@
     <p class="post-meta">2026-10-10 · 项目三 · 小家菜单</p>
 
     <div class="post-body">
-小家菜单里的 AI 部分没有用 LangChain，也没有用 LangGraph，就是一个手写的 ReAct 循环。这篇说清楚三件事：为什么这样选、边界划在哪里、以及那些「模型不听话」的时候后端怎么兜。</p>
+      <p class="lead">小家菜单里的 AI 部分没有用 LangChain，也没有用 LangGraph，就是一个手写的 ReAct 循环。这篇说清楚三件事：为什么这样选、边界划在哪里、以及那些「模型不听话」的时候后端怎么兜。</p>
 
   <h2>一、为什么不用框架</h2>
 
@@ -188,6 +194,7 @@ def get_fridge_items(user):
   <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
 </button>
 <div class="theme-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="../assets/post.js?v=20261110f" defer></script>
 <script src="../assets/theme.js?v=20261028c" defer></script>
 </body>
 </html>

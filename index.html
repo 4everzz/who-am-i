@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-type="software" data-motion data-buttons="solid">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>zmeety 的个人小站</title>
 <meta name="description" content="zmeety 的个人小站：技术笔记与作品集，记录 RAG 检索质量、多智能体编排与全栈交付的工程实践。">
 <meta name="author" content="zmeety">
+<meta name="page-type" content="software">
+<meta name="site-kind" content="software">
+<meta name="theme-color" content="#f5e8c9">
+<link rel="canonical" href="https://zmeety.cn/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="zmeety 的个人小站">
 <meta property="og:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
@@ -18,10 +22,13 @@
 <meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
 <meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=20261028c">
+<link rel="stylesheet" href="assets/styles.css?v=20261110k">
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/home.css?v=20261110k">
+<link rel="stylesheet" href="assets/taste/motion/motion.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
 </head>
-<body>
+<body class="home-page">
 
 <a class="skip-link" href="#main">跳到主要内容</a>
 <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
@@ -45,6 +52,10 @@
     </nav>
 
     <div class="header-actions">
+      <button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false" title="切换阅读模式">
+  <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="切换导航菜单">
         <span></span><span></span>
       </button>
@@ -55,42 +66,37 @@
 <main id="main" class="pages">
 
   <!-- ==================== HERO ==================== -->
-  <section class="hero page" id="top">
+  <section class="hero page" id="top" data-enter>
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <p class="eyebrow" data-reveal>
+        <p class="eyebrow">
           <span class="dot" aria-hidden="true"></span>
           持续更新 · AI Agent 工程实践
         </p>
 
-        <h1 data-reveal data-delay="60">
+        <h1>
           把不确定性，<br>
           关进<span class="hl">工程框架</span>。
         </h1>
 
-        <p class="hero-lead" data-reveal data-delay="120">
-          这里记录 AI Agent 的工程实践：RAG 检索质量、多智能体编排，
-          以及把一个家庭饮食应用从 0 做到上线的完整过程。
-        </p>
+        <p class="hero-lead">我做 AI Agent 应用，也记录从检索、编排到上线的工程实践。这里有三个项目，以及做它们时留下的技术笔记。</p>
 
-        <p class="hero-note" data-reveal data-delay="180">
-          我更在意的不是「能不能跑通」，而是出错时能不能定位、改坏了能不能回滚。
-        </p>
+        <p class="hero-note">出错时能定位，改坏了能回滚。</p>
 
-        <div class="hero-actions" data-reveal data-delay="240">
-          <a class="btn btn-primary" href="#work" data-magnetic>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn--primary" href="#work">
             看三个项目
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
           </a>
-          <a class="btn btn-ghost" href="#notes">
+          <a class="btn btn-ghost btn--secondary" href="#notes">
             读技术笔记
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
         </div>
       </div>
 
-      <aside class="terminal" aria-label="站点概要终端卡片" data-reveal data-delay="160">
+      <aside class="terminal" aria-label="站点概要终端卡片">
         <div class="terminal-bar">
           <span class="t-dots" aria-hidden="true"><i></i><i></i><i></i></span>
           <span class="t-path">~/profile</span>
@@ -102,9 +108,11 @@
           <p class="t-gap"><span class="t-prompt">$</span> <span class="t-cmd">cat profile.json</span></p>
 <pre class="t-json">{
   <span class="t-key">"site"</span>:  <span class="t-str">"zmeety.cn"</span>,
-  <span class="t-key">"focus"</span>: [<span class="t-str">"RAG"</span>, <span class="t-str">"Multi-Agent"</span>, <span class="t-str">"全栈交付"</span>],
-  <span class="t-key">"stack"</span>: [<span class="t-str">"Python"</span>, <span class="t-str">"FastAPI"</span>, <span class="t-str">"LangGraph"</span>],
-  <span class="t-key">"works"</span>: [<span class="t-str">"DevFleet"</span>, <span class="t-str">"小家开饭啦"</span>, <span class="t-str">"智愿通"</span>],
+  <span class="t-key">"focus"</span>: <span class="t-str">"RAG / Multi-Agent"</span>,
+  <span class="t-key">"stack"</span>: <span class="t-str">"Python / FastAPI / LangGraph"</span>,
+  <span class="t-key">"works"</span>: [
+    <span class="t-str">"DevFleet"</span>, <span class="t-str">"小家开饭啦"</span>, <span class="t-str">"智愿通"</span>
+  ],
   <span class="t-key">"notes"</span>: <span class="t-str">"不定期更新"</span>
 }</pre>
 
@@ -114,15 +122,15 @@
       </div>
 
     <div class="wrap metrics-grid">
-      <div class="metric" data-reveal data-delay="60">
+      <div class="metric">
         <div class="metric-num"><span data-count="100">100</span><small>题</small></div>
         <div class="metric-label">自建 RAG 评测集</div>
       </div>
-      <div class="metric" data-reveal data-delay="120">
+      <div class="metric">
         <div class="metric-num"><span data-count="1416">1,416</span><small>条</small></div>
         <div class="metric-label">智愿通自动化测试</div>
       </div>
-      <div class="metric" data-reveal data-delay="180">
+      <div class="metric">
         <div class="metric-num metric-range">22.3<span class="arrow">→</span>7.0<small>s</small></div>
         <div class="metric-label">提问到出字延迟</div>
       </div>
@@ -134,18 +142,16 @@
     </div>
   </section>
 
-  
-
   <!-- ==================== 项目 ==================== -->
   <section class="section page" id="work">
     <div class="wrap">
-      <div class="section-head" data-reveal>
-        <div class="section-kicker">Selected Work</div>
+      <div class="section-head">
+        <div class="section-kicker">01 / Selected work</div>
         <h2>三个从 0 到 1 的项目</h2>
       </div>
 
       <!-- DevFleet -->
-      <article class="project-card project-featured" data-reveal>
+      <article class="project-card project-featured">
         <div class="project-main">
           <div class="project-meta">
             <span class="project-index">01</span>
@@ -155,8 +161,7 @@
 
           <h3>DevFleet</h3>
           <p class="project-sub">Multi-Agent 研发协作平台</p>
-          <p class="project-intro">一条 PR 躺了两天没人合，你得先翻任务背景、再看代码改动、回头查评审意见、顺手打开构建日志，最后去文档里确认设计约束——五个页面来回切，结论还是「再看看」。</p>
-          <p class="project-intro">DevFleet 把这些收进一个每句话都能给出处的研发资料库：这个任务该谁做、这个改动该不该合、这次构建为什么失败，一次问清楚。</p>
+          <p class="project-intro">以研发数据与证据检索为底座，编排分诊、审查、排障 Agent 协作。跨领域任务按依赖调度，结论可溯源，写操作经人工确认后执行。</p>
 
           <p class="project-desc">
             判断一条 PR 能不能合并，研发要横跨任务、代码改动、评审意见、构建日志与项目文档反复比对。
@@ -170,22 +175,34 @@
             <li>写操作一律先落草稿，过权限校验与人工确认才真正调用 GitHub API，全程审计留痕。</li>
           </ul>
 
-        </div>
-
-        <div class="project-aside">
+          <div class="project-foot">
           <ul class="chips" aria-label="技术栈">
             <li>Python</li><li>FastAPI</li><li>LangGraph</li><li>Milvus</li><li>MCP</li><li>SSE</li><li>PostgreSQL</li><li>Next.js</li>
           </ul>
-          <button class="btn btn-outline" type="button" data-open="p-devfleet">
-            设计与取舍
+          <button class="btn btn-outline btn--secondary" type="button" data-open="p-devfleet">
+            架构与设计
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
+        </div>
+        </div>
+
+        <div class="project-aside">
+          <p class="flow-caption">跨领域问题 · 核心协作链路（简化）</p>
+          <ol class="agent-flow" aria-label="简化的跨领域协作链路：研发问题经 Planner 拆解，Orchestrator 按依赖调度分诊、审查和排障 Agent，Observer 校验证据，Synthesis 汇总带引用的结论">
+            <li><span class="flow-node">研发问题</span></li>
+            <li><span class="flow-node flow-core">Planner · 任务拆解</span></li>
+            <li><span class="flow-node">Orchestrator · 依赖调度</span></li>
+            <li><div class="flow-lanes"><span>分诊</span><span>审查</span><span>排障</span></div></li>
+            <li><span class="flow-node">Observer · 证据校验</span></li>
+            <li><span class="flow-node flow-result">Synthesis · 引用汇总</span></li>
+          </ol>
+          <p class="flow-context">数据接入与检索提供证据<br>权限校验、人工确认与审计约束写操作</p>
         </div>
         </article>
 
       <div class="project-grid">
         <!-- 小家开饭啦 -->
-        <article class="project-card" data-reveal>
+        <article class="project-card">
           <div class="project-meta">
             <span class="project-index">02</span>
             <span class="tag tag-live"><i aria-hidden="true"></i>已上线</span>
@@ -194,8 +211,7 @@
 
           <h3>小家开饭啦</h3>
           <p class="project-sub">家庭饮食管理与 AI 助手</p>
-          <p class="project-intro">晚上七点，三个人三种口味，谁都不想吃重复的，最后打开外卖软件刷了二十分钟——你家是不是也这样？</p>
-          <p class="project-intro">饭小团是家里随叫随到的厨房助手：问一句「冰箱里还有什么」，它把菜单和库存一起翻出来；说一句「这周想吃清淡点」，它排好一周的用餐计划。吃完顺手记一笔，热量和口味偏好都攒在同一处，让每一顿饭都值得被记录。</p>
+          <p class="project-intro">把家庭菜单、冰箱库存和用餐计划放在一起。AI 助手按现有食材推荐菜谱，只读工具有明确边界，写入由用户确认。</p>
 
           <p class="project-desc">
             家庭成员的菜单、冰箱库存、收藏与点单集中到一处，不用再在群聊里反复确认「买什么、还剩什么」。
@@ -216,13 +232,13 @@
               <a class="link-out" href="https://menu.zmeety.cn" target="_blank" rel="noopener">访问应用
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
               </a>
-              <button class="btn btn-outline btn-sm" type="button" data-open="p-menu">详情</button>
+              <button class="btn btn-outline btn--secondary btn-sm" type="button" data-open="p-menu">详情</button>
             </div>
           </div>
         </article>
 
         <!-- 智愿通 -->
-        <article class="project-card" data-reveal data-delay="80">
+        <article class="project-card">
           <div class="project-meta">
             <span class="project-index">03</span>
             <span class="tag">问答系统</span>
@@ -231,8 +247,7 @@
 
           <h3>智愿通</h3>
           <p class="project-sub">高考志愿填报智能体</p>
-          <p class="project-intro">你是否还在为了报志愿来回查五个平台——分数线在一个网站、专业位次在另一个、选科要求还得翻招生章程？</p>
-          <p class="project-intro">本项目专门针对高考志愿填报：把分数先换算成位次，按冲稳保圈定院校，每条结论都带出处，查不到就说不知道，而不是编一个看起来合理的答案。</p>
+          <p class="project-intro">将招生信息做成可追溯的问答系统。分数换算位次、院校按冲稳保筛选，用混合检索和自建评测集检查每条回答。</p>
 
           <p class="project-desc">
             把散落在考试院官网、高校招生网与院校档案里的招生信息，做成可问答的检索链路。
@@ -250,7 +265,7 @@
               <li>LangGraph</li><li>pgvector</li><li>RRF</li><li>jieba</li><li>FastAPI</li><li>pytest</li>
             </ul>
             <div class="foot-actions">
-              <button class="btn btn-outline btn-sm" type="button" data-open="p-zhiyuan">详情</button>
+              <button class="btn btn-outline btn--secondary btn-sm" type="button" data-open="p-zhiyuan">详情</button>
             </div>
           </div>
         </article>
@@ -261,104 +276,104 @@
   <!-- ==================== 技术笔记 ==================== -->
   <section class="section page" id="notes">
     <div class="wrap">
-      <div class="section-head" data-reveal>
-        <div class="section-kicker">Notes</div>
+      <div class="section-head">
+        <div class="section-kicker">02 / Notes</div>
         <h2>技术笔记</h2>
       </div>
 
       <div class="notes-list" id="notesList">
-        <a class="note-item" data-page="1" href="posts/why-vector-not-enough.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/why-vector-not-enough.html">
           <span class="note-kicker">检索 / RAG</span>
           <span class="note-body">
             <span class="note-title">为什么纯向量检索不够用：BM25 + RRF 混合检索实践</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="1" href="posts/hitl-three-bugs.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/hitl-three-bugs.html">
           <span class="note-kicker">测试 / 排障</span>
           <span class="note-body">
             <span class="note-title">38 个单测全绿，功能一次都没触发过</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="1" href="posts/dimension-mismatch.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/dimension-mismatch.html">
           <span class="note-kicker">排障 / 工程习惯</span>
           <span class="note-body">
             <span class="note-title">同一个错犯了五次：阈值与判据的量纲必须匹配</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="1" href="posts/eval-integrity.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/eval-integrity.html">
           <span class="note-kicker">评测 / 可信度</span>
           <span class="note-body">
             <span class="note-title">评测工具比业务代码更危险</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="1" href="posts/bounded-react-agent.html" data-reveal>
+        <a class="note-item" data-page="1" href="posts/bounded-react-agent.html">
           <span class="note-kicker">AI / Agent</span>
           <span class="note-body">
             <span class="note-title">手写一个有限的 ReAct Agent：为什么不用框架</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="1" href="posts/multi-agent-boundary.html" data-reveal>
+        <a class="note-item" data-page="2" href="posts/multi-agent-boundary.html">
           <span class="note-kicker">多智能体 / 编排</span>
           <span class="note-body">
             <span class="note-title">多 Agent 不是越多越好：拆分的边界在哪</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="1" href="posts/why-not-ragas.html" data-reveal>
+        <a class="note-item" data-page="2" href="posts/why-not-ragas.html">
           <span class="note-kicker">评测 / 依赖</span>
           <span class="note-body">
             <span class="note-title">为什么我不用 RAGAS：一次依赖降级的取舍</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="2" href="posts/mcp-cold-start.html" data-reveal>
+        <a class="note-item" data-page="2" href="posts/mcp-cold-start.html">
           <span class="note-kicker">性能 / MCP</span>
           <span class="note-body">
             <span class="note-title">MCP 首次调用 59.6 秒：三个瓶颈叠在一起</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="2" href="posts/false-refusal-zero.html" data-reveal>
+        <a class="note-item" data-page="2" href="posts/false-refusal-zero.html">
           <span class="note-kicker">评测 / 质量</span>
           <span class="note-body">
             <span class="note-title">19 个误拒答，是怎么一个个归零的</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="2" href="posts/agent-stop-conditions.html" data-reveal>
+        <a class="note-item" data-page="2" href="posts/agent-stop-conditions.html">
           <span class="note-kicker">AI / 工程规范</span>
           <span class="note-body">
             <span class="note-title">Agent 循环没有停止条件，就是在等事故</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="2" href="posts/sse-reconnect.html" data-reveal>
+        <a class="note-item" data-page="3" href="posts/sse-reconnect.html">
           <span class="note-kicker">流式 / 前端</span>
           <span class="note-body">
             <span class="note-title">SSE 断线之后，前端为什么收到半句话</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="2" href="posts/family-member-race.html" data-reveal>
+        <a class="note-item" data-page="3" href="posts/family-member-race.html">
           <span class="note-kicker">并发 / 数据库</span>
           <span class="note-body">
             <span class="note-title">六个人同时点加入，家庭成员上限失效了</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="2" href="posts/prompt-as-code.html" data-reveal>
+        <a class="note-item" data-page="3" href="posts/prompt-as-code.html">
           <span class="note-kicker">工程化 / Prompt</span>
           <span class="note-body">
             <span class="note-title">Prompt 改了没人知道，比改错更麻烦</span>
           </span>
           <span class="note-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="note-item" data-page="2" href="posts/canary-metrics.html" data-reveal>
+        <a class="note-item" data-page="3" href="posts/canary-metrics.html">
           <span class="note-kicker">发布 / 可观测</span>
           <span class="note-body">
             <span class="note-title">灰度只放 5% 流量，该看哪三个指标</span>
@@ -379,14 +394,14 @@
   <!-- ==================== 技能 ==================== -->
   <section class="section page" id="stack">
     <div class="wrap">
-      <div class="section-head" data-reveal>
-        <div class="section-kicker">Stack</div>
+      <div class="section-head">
+        <div class="section-kicker">03 / Stack</div>
         <h2>技术栈</h2>
         <p class="section-note">只列项目里真正用过的。没写过的不往上放。</p>
       </div>
 
       <div class="stack-grid">
-        <div class="stack-card" data-reveal>
+        <div class="stack-card">
           <h3><span class="stack-icon" aria-hidden="true">A</span>AI 应用</h3>
           <dl>
             <dt>Agent</dt>
@@ -396,7 +411,7 @@
           </dl>
         </div>
 
-        <div class="stack-card" data-reveal data-delay="60">
+        <div class="stack-card">
           <h3><span class="stack-icon" aria-hidden="true">B</span>后端与数据</h3>
           <dl>
             <dt>数据层</dt>
@@ -406,7 +421,7 @@
           </dl>
         </div>
 
-        <div class="stack-card" data-reveal data-delay="120">
+        <div class="stack-card">
           <h3><span class="stack-icon" aria-hidden="true">C</span>前端与交付</h3>
           <dl>
             <dt>前端</dt>
@@ -416,7 +431,7 @@
           </dl>
         </div>
 
-        <div class="stack-card" data-reveal data-delay="180">
+        <div class="stack-card">
           <h3><span class="stack-icon" aria-hidden="true">D</span>工程与安全</h3>
           <dl>
             <dt>质量</dt>
@@ -427,7 +442,7 @@
         </div>
       </div>
 
-      <p class="stack-foot" data-reveal>
+      <p class="stack-foot">
         日常使用 Codex、Claude Code、Cursor 等 AI 编程工具；评测框架评估过 RAGAS，
         因依赖降级问题改为自实现同算法。
       </p>
@@ -437,35 +452,35 @@
   <!-- ==================== 原则 ==================== -->
   <section class="section section-alt page" id="principles">
     <div class="wrap">
-      <div class="section-head" data-reveal>
-        <div class="section-kicker">How I Work</div>
+      <div class="section-head">
+        <div class="section-kicker">04 / How I work</div>
         <h2>四条工作原则</h2>
         <p class="section-note">项目之外的一些判断标准，也决定了代码最后长什么样。</p>
       </div>
 
       <ol class="principles">
-        <li data-reveal>
+        <li>
           <span class="p-num">01</span>
           <div>
             <h3>先问「真的需要 Agent 吗」</h3>
             <p>能一次模型调用或固定流程解决的，不加自主循环。上 Agent 意味着引入不确定性、成本和运维负担，它是负债，不是资产。</p>
           </div>
         </li>
-        <li data-reveal data-delay="60">
+        <li>
           <span class="p-num">02</span>
           <div>
             <h3>没有停止条件的循环就是事故</h3>
             <p>每个自主循环都要有步数上限、Token 预算、墙钟上限和人工接管点。写不出停止条件，就不该上线。</p>
           </div>
         </li>
-        <li data-reveal data-delay="120">
+        <li>
           <span class="p-num">03</span>
           <div>
             <h3>约束必须能被验证</h3>
             <p>「回答要有出处」不是一句口号，得有代码级校验和评测集去查。说不出怎么检查的约束，等于没有约束。</p>
           </div>
         </li>
-        <li data-reveal data-delay="180">
+        <li>
           <span class="p-num">04</span>
           <div>
             <h3>不为了用新技术而上线</h3>
@@ -479,16 +494,16 @@
   <!-- ==================== 关于 ==================== -->
   <section class="section contact page page-last" id="about">
     <div class="wrap">
-      <div class="contact-inner" data-reveal>
-        <div class="section-kicker">About</div>
+      <div class="contact-inner" data-moment="word-highlight">
+        <div class="section-kicker">05 / About</div>
         <h2>关于这个站点</h2>
-        <p>
+        <p class="mo-wh__text">
           这里是一个 AI Agent 开发者的工作台：一边放做出来的东西，一边放做的时候想明白的事。
           项目都真实跑过，笔记里的数字都能在对应的项目里找到出处。
         </p>
 
         <div class="about-contact">
-          <a class="btn btn-primary" href="mailto:2874951005@qq.com">2874951005@qq.com</a>
+          <a class="btn btn-primary btn--primary" href="mailto:2874951005@qq.com">2874951005@qq.com</a>
         </div>
 
         <ul class="contact-list about-facts">
@@ -537,7 +552,8 @@
     </section>
 
     <section class="dlg-section">
-      <h3>做法</h3>
+      <h3>架构与职责</h3>
+      <p>首页展示跨领域问题的简化协作链路。系统还包含数据接入、证据检索与写操作治理；各部分职责如下。</p>
       <div class="dlg-items">
         <div class="dlg-item">
           <h4>研发数据底座</h4>
@@ -551,14 +567,19 @@
         </div>
         <div class="dlg-item">
           <h4>多智能体编排</h4>
-          <p>分诊、审查、排障各交给一个专职 Agent；跨领域问题由
-             Planner → Orchestrator → Observer → Synthesis 拆解，按依赖并行执行，
-             Observer 专门校验证据缺口与结论冲突，输出可逐条核对的合入建议。</p>
+          <p>分诊、审查、排障各交给一个专职 Agent；跨领域问题由 Planner 拆成带依赖的任务，
+             Orchestrator 按依赖调度，可并行的任务并行执行；Observer 校验证据缺口与结论冲突，
+             最后由 Synthesis 汇总为带引用、可逐条核对的建议。</p>
         </div>
         <div class="dlg-item">
           <h4>写操作要人点头</h4>
           <p>评论、关任务、加标签统一转为 ActionDraft，过权限校验与人工确认才真正调用 GitHub API，
              全程落 AuditLog；SSE 实时推送工具调用与执行进度。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>执行边界与故障处理</h4>
+          <p>单任务设 90 秒超时；上游依赖失败时跳过下游任务，避免带着残缺证据继续执行。
+             Token 预算与调用熔断约束整条链路的成本。</p>
         </div>
       </div>
     </section>
@@ -848,13 +869,11 @@
 </dialog>
 
 
-<script src="assets/app.js?v=20261028c"></script>
+<script src="assets/app.js?v=20261110k"></script>
 
-<button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false" title="切换阅读模式">
-  <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-  <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-</button>
-<div class="theme-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
 <script src="assets/theme.js?v=20261028c" defer></script>
+<script type="module" src="assets/taste/motion/motion.js"></script>
+<script type="module" src="assets/taste/moments/moments.js"></script>
 </body>
 </html>

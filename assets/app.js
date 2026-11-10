@@ -1,450 +1,227 @@
-// 站点主脚本：无依赖，原生 API
+// Homepage interactions, paper-card entrances and desktop section scrolling.
 (function () {
   'use strict';
-
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ---------- 移动端导航 ---------- */
-  var menuBtn = document.querySelector('.menu-btn');
+  var menu = document.querySelector('.menu-btn');
   var nav = document.getElementById('nav');
-
-  if (menuBtn && nav) {
-    menuBtn.addEventListener('click', function () {
-      var open = menuBtn.getAttribute('aria-expanded') === 'true';
-      menuBtn.setAttribute('aria-expanded', String(!open));
-      document.body.classList.toggle('nav-open', !open);
-    });
-
-    nav.addEventListener('click', function (e) {
-      if (e.target.tagName === 'A') {
-        menuBtn.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('nav-open');
-      }
+  var main = document.getElementById('main');
+  var footer = document.querySelector('.site-footer');
+  var mobile = window.matchMedia('(max-width: 700px)');
+  function setMenu(open, restoreFocus) {
+    if (!menu || !nav) return;
+    menu.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('nav-open', open);
+    if (main) main.inert = open;
+    if (footer) footer.inert = open;
+    if (open) nav.querySelector('a').focus();
+    else if (restoreFocus) menu.focus();
+  }
+  if (menu && nav) {
+    menu.addEventListener('click', function () { setMenu(menu.getAttribute('aria-expanded') !== 'true'); });
+    nav.addEventListener('click', function (event) { if (event.target.closest('a')) setMenu(false); });
+    mobile.addEventListener('change', function () { if (!mobile.matches) setMenu(false); });
+    document.addEventListener('keydown', function (event) {
+      if (menu.getAttribute('aria-expanded') !== 'true') return;
+      if (event.key === 'Escape') { event.preventDefault(); setMenu(false, true); }
+      if (event.key !== 'Tab') return;
+      var items = Array.from(nav.querySelectorAll('a')).concat(Array.from(document.querySelectorAll('.header-actions button')));
+      var current = items.indexOf(document.activeElement);
+      if (event.shiftKey && current === 0) { event.preventDefault(); items[items.length - 1].focus(); }
+      else if (!event.shiftKey && current === items.length - 1) { event.preventDefault(); items[0].focus(); }
     });
   }
-
-  /* ---------- 滚动进度 + 顶栏描边 ---------- */
   var bar = document.getElementById('progressBar');
   var header = document.querySelector('.site-header');
-  var ticking = false;
-
-  function onScroll() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(function () {
-      var h = document.documentElement.scrollHeight - window.innerHeight;
-      bar.style.transform = 'scaleX(' + (h > 0 ? window.scrollY / h : 0) + ')';
-      if (header) header.classList.toggle('is-stuck', window.scrollY > 8);
-      ticking = false;
+  var links = Array.from(document.querySelectorAll('.nav a'));
+  var sections = links.map(function (link) { return document.querySelector(link.getAttribute('href')); }).filter(Boolean);
+  var pending = false;
+  function updateScroll() {
+    pending = false;
+    var height = document.documentElement.scrollHeight - window.innerHeight;
+    if (bar) bar.style.transform = 'scaleX(' + (height > 0 ? window.scrollY / height : 0) + ')';
+    if (header) header.classList.toggle('is-stuck', window.scrollY > 8);
+    var current = '';
+    var marker = (header ? header.offsetHeight : 80) + window.innerHeight * .25;
+    sections.forEach(function (section) { if (section.getBoundingClientRect().top <= marker) current = section.id; });
+    links.forEach(function (link) {
+      var active = link.getAttribute('href') === '#' + current;
+      link.classList.toggle('is-active', active);
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
     });
   }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
-  /* ---------- 进入视口淡入 ---------- */
-  var revealItems = document.querySelectorAll('[data-reveal]');
-
-  if (reduceMotion || !('IntersectionObserver' in window)) {
-    revealItems.forEach(function (el) { el.classList.add('is-in'); });
-  } else {
-    var revealObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        var el = entry.target;
-        var delay = Number(el.getAttribute('data-delay') || 0);
-        setTimeout(function () { el.classList.add('is-in'); }, delay);
-        revealObserver.unobserve(el);
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-    revealItems.forEach(function (el) { revealObserver.observe(el); });
-  }
-
-  /* 兜底：锚点跳转或 IO 未触发时，避免内容一直透明 */
-  setTimeout(function () {
-    document.querySelectorAll('[data-reveal]:not(.is-in)').forEach(function (el) {
-      var r = el.getBoundingClientRect();
-      if (r.top < window.innerHeight + 80 && r.bottom > -80) el.classList.add('is-in');
-    });
-  }, 1200);
-
-  /* ---------- 数字滚动 ---------- */
-  var counters = document.querySelectorAll('[data-count]');
-
-  function formatNum(value, decimals) {
-    var parts = value.toFixed(decimals).split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return parts.join('.');
-  }
-
-  function counterText(el, value) {
-    return formatNum(value, Number(el.getAttribute('data-decimals') || 0)) +
-           (el.getAttribute('data-suffix') || '');
-  }
-
-  function runCounter(el) {
-    var target = parseFloat(el.getAttribute('data-count'));
-    var duration = 900;
-    var start = null;
-
-    function step(ts) {
-      if (!start) start = ts;
-      var p = Math.min((ts - start) / duration, 1);
-      var eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = counterText(el, target * eased);
-      if (p < 1) requestAnimationFrame(step);
+  function queueScroll() { if (!pending) { pending = true; requestAnimationFrame(updateScroll); } }
+  window.addEventListener('scroll', queueScroll, { passive: true });
+  window.addEventListener('resize', queueScroll);
+  updateScroll();
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var desktop = window.matchMedia('(min-width: 901px) and (pointer: fine)');
+  var pages = Array.from(document.querySelectorAll('.pages > .page'));
+  var scrollFrame = 0;
+  function cancelPageScroll() { cancelAnimationFrame(scrollFrame); scrollFrame = 0; }
+  function moveTo(y) {
+    cancelPageScroll();
+    var start = window.scrollY;
+    var target = Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight));
+    if (reducedMotion.matches) { window.scrollTo(0, target); return; }
+    var began = performance.now();
+    function frame(now) {
+      var t = Math.min(1, (now - began) / 460);
+      var eased = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      window.scrollTo(0, start + (target - start) * eased);
+      scrollFrame = t < 1 ? requestAnimationFrame(frame) : 0;
     }
-    requestAnimationFrame(step);
+    scrollFrame = requestAnimationFrame(frame);
   }
-
-  if (counters.length) {
-    if (!('IntersectionObserver' in window)) {
-      counters.forEach(function (el) {
-        el.textContent = counterText(el, parseFloat(el.getAttribute('data-count')));
-      });
-    } else {
-      // 先归零，等进入视口再滚动；脚本在 body 末尾执行，不会造成可见闪烁
-      counters.forEach(function (el) { el.textContent = counterText(el, 0); });
-      var countObserver = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          runCounter(entry.target);
-          countObserver.unobserve(entry.target);
-        });
-      }, { threshold: 0.3 });
-      counters.forEach(function (el) { countObserver.observe(el); });
-    }
-  }
-
-  /* ---------- 导航当前区块高亮 ---------- */
-  var sections = document.querySelectorAll('main section[id]');
-  var navLinks = document.querySelectorAll('.nav a');
-
-  if (sections.length && navLinks.length && 'IntersectionObserver' in window) {
-    var sectionObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        var id = entry.target.id;
-        navLinks.forEach(function (link) {
-          var active = link.getAttribute('href') === '#' + id;
-          link.classList.toggle('is-active', active);
-          if (active) link.setAttribute('aria-current', 'location');
-          else link.removeAttribute('aria-current');
-        });
-      });
-    }, { rootMargin: '-45% 0px -50% 0px' });
-
-    sections.forEach(function (s) { sectionObserver.observe(s); });
-  }
-
-  /* ---------- 项目详情弹层 ---------- */
-  var openers = document.querySelectorAll('[data-open]');
-
-  openers.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var dialog = document.getElementById(btn.getAttribute('data-open'));
-      if (!dialog) return;
-      dialog.showModal();
-      document.body.classList.add('modal-open');
-    });
-  });
-
-  document.querySelectorAll('dialog.project-dialog').forEach(function (dialog) {
-    function close() {
-      dialog.close();
-    }
-
-    dialog.querySelectorAll('[data-close]').forEach(function (btn) {
-      btn.addEventListener('click', close);
-    });
-
-    // 点击遮罩关闭：dialog 自身尺寸即内容尺寸，判断点击是否落在 dialog 之外
-    dialog.addEventListener('click', function (e) {
-      if (e.target !== dialog) return;
-      var r = dialog.getBoundingClientRect();
-      var inside = e.clientX >= r.left && e.clientX <= r.right &&
-                   e.clientY >= r.top && e.clientY <= r.bottom;
-      if (!inside) close();
-    });
-
-    dialog.addEventListener('close', function () {
-      document.body.classList.remove('modal-open');
-      // 从深链打开的，关闭后把 hash 清掉，避免刷新又弹出来
-      try {
-        if (location.hash === '#' + dialog.id) {
-          history.replaceState(null, '', location.pathname + location.search);
-        }
-      } catch (err) { /* file:// 下忽略 */ }
-    });
-  });
-
-  /* ---------- 项目深链：zmeety.cn/#p-devfleet ---------- */
-  (function openFromHash() {
-    var id = location.hash.slice(1);
-    if (!id) return;
-    var dialog = document.getElementById(id);
-    if (dialog && dialog.classList.contains('project-dialog')) {
-      dialog.showModal();
-      document.body.classList.add('modal-open');
-    }
-  })();
-
-  /* ---------- 指针动效：卡片 3D 倾斜 + 按钮磁吸 ---------- */
-  var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-  if (!reduceMotion && finePointer) {
-    document.querySelectorAll('.project-card').forEach(function (card) {
-      var raf = null;
-
-      card.addEventListener('mousemove', function (e) {
-        if (raf) return;
-        raf = requestAnimationFrame(function () {
-          var r = card.getBoundingClientRect();
-          var px = (e.clientX - r.left) / r.width;
-          var py = (e.clientY - r.top) / r.height;
-
-          card.style.setProperty('--ry', ((px - 0.5) * 3.2).toFixed(2) + 'deg');
-          card.style.setProperty('--rx', ((0.5 - py) * 3.2).toFixed(2) + 'deg');
-          card.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
-          card.style.setProperty('--my', (py * 100).toFixed(1) + '%');
-          raf = null;
-        });
-      });
-
-      card.addEventListener('mouseleave', function () {
-        card.style.setProperty('--rx', '0deg');
-        card.style.setProperty('--ry', '0deg');
-      });
-    });
-
-    document.querySelectorAll('[data-magnetic]').forEach(function (el) {
-      el.addEventListener('mousemove', function (e) {
-        var r = el.getBoundingClientRect();
-        var dx = (e.clientX - r.left - r.width / 2) * 0.14;
-        var dy = (e.clientY - r.top - r.height / 2) * 0.22;
-        el.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
-      });
-
-      el.addEventListener('mouseleave', function () {
-        el.style.transform = '';
-      });
-    });
-  }
-
-  /* ---------- 电脑端翻页：自定义缓动，不被原生滚动打断 ---------- */
-  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
-  var pagerIdx = document.getElementById('pagerIdx');
-  var pagerRail = document.getElementById('pagerRail');
-  var pager = document.querySelector('.pager');
-  var hint = document.querySelector('.scroll-hint');
-  var wide = window.matchMedia('(min-width: 861px)');
-
-  if (pages.length) {
-    // 按元素在页面里的横向位置决定从哪一侧聚拢
+  // Long sections receive extra stops with overlapping viewports, so no content is skipped.
+  function pageStops() {
+    var offset = header ? header.offsetHeight : 0;
+    var view = innerHeight - offset;
+    var stops = [0];
     pages.forEach(function (page) {
-      var pr = page.getBoundingClientRect();
-      var w = pr.width || window.innerWidth;
-
-      page.querySelectorAll('[data-reveal]').forEach(function (el) {
-        var r = el.getBoundingClientRect();
-        var ratio = (r.left - pr.left + r.width / 2) / w;
-
-        if (r.width > w * 0.62) {
-          el.style.setProperty('--fy', '34px');
-        } else if (ratio < 0.44) {
-          el.style.setProperty('--fx', '-58px');
-          el.style.setProperty('--fy', '16px');
-        } else if (ratio > 0.56) {
-          el.style.setProperty('--fx', '58px');
-          el.style.setProperty('--fy', '16px');
-        } else {
-          el.style.setProperty('--fy', '34px');
-        }
-        el.style.setProperty('--fs', '0.94');
-      });
+      var top = Math.max(0, page.getBoundingClientRect().top + scrollY - offset);
+      var overflow = Math.max(0, page.offsetHeight - view);
+      var steps = Math.ceil(overflow / (view * .85));
+      stops.push(top);
+      for (var i = 1; i <= steps; i++) stops.push(top + overflow * i / steps);
     });
-
-    var current = 0;
-    var animating = false;
-    var animToken = 0;
-
-    function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    }
-
-    function scrollToY(target, duration) {
-      var startY = window.pageYOffset;
-      var dist = target - startY;
-      if (Math.abs(dist) < 2) { animating = false; return; }
-
-      var token = ++animToken;
-      var t0 = performance.now();
-
-      function frame(now) {
-        if (token !== animToken) return;          // 被新动画接管
-        var p = Math.min((now - t0) / duration, 1);
-        window.scrollTo(0, startY + dist * easeInOutCubic(p));
-        if (p < 1) requestAnimationFrame(frame);
-        else animating = false;
-      }
-      requestAnimationFrame(frame);
-    }
-
-    function setPage(i) {
-      current = i;
-      if (pagerIdx) pagerIdx.textContent = String(i + 1).padStart(2, '0');
-      if (pagerRail) {
-        pagerRail.style.transform = 'scaleY(' + ((i + 1) / pages.length).toFixed(3) + ')';
-      }
-    }
-
-    function go(i, force) {
-      if (i < 0 || i >= pages.length) return;
-      if (animating && !force) return;
-      animating = true;
-      setPage(i);
-      var head = document.querySelector('.site-header');
-      var offset = head ? head.offsetHeight : 0;
-      scrollToY(Math.max(0, pages[i].offsetTop - offset), 680);
-    }
-
-    var pageObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-in');
-        if (!animating) setPage(pages.indexOf(entry.target));
-      });
-    }, { threshold: 0.45 });
-    pages.forEach(function (p) { pageObserver.observe(p); });
-
-    // 滚轮：任何情况下都先吃掉原生滚动，动画才不会被撕开
-    function modalOpen() {
-      return document.body.classList.contains('modal-open') ||
-             !!document.querySelector('dialog[open]');
-    }
-
-    window.addEventListener('wheel', function (e) {
-      if (!wide.matches) return;
-      if (modalOpen()) return;                 // 弹窗自己滚，别翻背景页
-      if (Math.abs(e.deltaY) < 4) return;
-      e.preventDefault();
-      if (animating) return;
-      go(current + (e.deltaY > 0 ? 1 : -1));
-    }, { passive: false });
-
-    window.addEventListener('keydown', function (e) {
-      if (!wide.matches || modalOpen()) return;
-      var k = e.key;
-      if (k === 'PageDown' || k === 'ArrowDown') { e.preventDefault(); go(current + 1); }
-      else if (k === 'PageUp' || k === 'ArrowUp') { e.preventDefault(); go(current - 1); }
-      else if (k === 'Home') { e.preventDefault(); go(0); }
-      else if (k === 'End') { e.preventDefault(); go(pages.length - 1); }
-    });
-
-    // 拖滚动条时同步页码
-    window.addEventListener('scroll', function () {
-      if (animating || !wide.matches) return;
-      var y = window.pageYOffset;
-      var best = 1e9;
-      var idx = current;
-      pages.forEach(function (p, i) {
-        var d = Math.abs(p.offsetTop - y);
-        if (d < best) { best = d; idx = i; }
-      });
-      if (idx !== current) setPage(idx);
-    }, { passive: true });
-
-    // 导航与首屏按钮：允许打断当前动画，点了就立刻转向
-    document.querySelectorAll('.nav a[href^="#"], .hero-actions a[href^="#"]').forEach(function (a) {
-      a.addEventListener('click', function (e) {
-        var el = document.querySelector(a.getAttribute('href'));
-        var i = pages.indexOf(el);
-        if (i < 0) return;
-        e.preventDefault();
-        go(i, true);
-      });
-    });
-
-    if (location.hash) {
-      var targetEl = document.querySelector(location.hash);
-      var idx = pages.indexOf(targetEl);
-      if (idx > 0) setTimeout(function () { go(idx, true); }, 60);
-    }
-
-    function syncMode() {
-      document.documentElement.classList.toggle('snap-on', wide.matches);
-      if (pager) pager.classList.toggle('is-on', wide.matches);
-    }
-    syncMode();
-    if (wide.addEventListener) wide.addEventListener('change', syncMode);
-
-    window.addEventListener('scroll', function () {
-      if (hint) hint.classList.toggle('is-off', window.pageYOffset > window.innerHeight * 0.25);
-    }, { passive: true });
+    stops.push(document.documentElement.scrollHeight - innerHeight);
+    return stops.sort(function (a, b) { return a - b; });
   }
+  function stepPage(direction) {
+    var stops = pageStops();
+    if (direction < 0) stops.reverse();
+    var target = stops.find(function (y) { return (y - scrollY) * direction > 3; });
+    if (target !== undefined) moveTo(target);
+  }
+  function scrollBlocked() { return document.body.classList.contains('modal-open') || document.body.classList.contains('nav-open'); }
+  function nestedScroller(target) {
+    for (var el = target; el && el !== document.body; el = el.parentElement) {
+      if (/(auto|scroll)/.test(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight + 1) return true;
+    }
+    return false;
+  }
+  var lastWheel = 0, wheelTotal = 0, wheelDirection = 0, gestureUsed = false;
+  window.addEventListener('wheel', function (event) {
+    if (!desktop.matches || reducedMotion.matches || scrollBlocked() || event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY) || nestedScroller(event.target)) return;
+    if (!event.deltaY) return;
+    var now = performance.now(), direction = Math.sign(event.deltaY);
+    if (now - lastWheel > 160 || direction !== wheelDirection) { wheelTotal = 0; gestureUsed = false; }
+    lastWheel = now;
+    wheelDirection = direction;
+    event.preventDefault();
+    if (scrollFrame || gestureUsed) return;
+    wheelTotal += Math.abs(event.deltaY) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
+    if (wheelTotal >= 12) { gestureUsed = true; stepPage(direction); }
+  }, { passive: false });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Tab' || event.key === 'Escape') cancelPageScroll();
+    if (!desktop.matches || reducedMotion.matches || scrollBlocked() || event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey || event.target.closest('a, button, input, textarea, select, summary, [contenteditable], [role="button"]')) return;
+    var direction = ['PageDown', 'ArrowDown', ' '].includes(event.key) ? 1 : ['PageUp', 'ArrowUp'].includes(event.key) ? -1 : 0;
+    if (event.key === ' ' && event.shiftKey) direction = -1;
+    if (!direction && event.key !== 'Home' && event.key !== 'End') return;
+    event.preventDefault();
+    if (event.repeat || scrollFrame) return;
+    if (direction) stepPage(direction);
+    else moveTo(event.key === 'Home' ? 0 : document.documentElement.scrollHeight);
+  });
+  document.querySelectorAll('.brand, .nav a, .hero-actions a').forEach(function (link) {
+    link.addEventListener('click', function (event) {
+      var target = document.getElementById(link.hash.slice(1));
+      if (!target || !link.hash || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      history.pushState(null, '', link.hash);
+      moveTo(target.getBoundingClientRect().top + scrollY - (header ? header.offsetHeight : 0));
+    });
+  });
+  window.addEventListener('pointerdown', cancelPageScroll, { passive: true });
+  window.addEventListener('touchstart', cancelPageScroll, { passive: true });
+  window.addEventListener('resize', cancelPageScroll);
+  reducedMotion.addEventListener('change', cancelPageScroll);
 
-  /* ---------- 笔记分页 ---------- */
-  var notesList = document.getElementById('notesList');
-  var pageDots = document.querySelectorAll('.page-dot');
-
-  if (notesList && pageDots.length) {
-    var noteItems = Array.prototype.slice.call(notesList.querySelectorAll('.note-item'));
-    var perPage = 5;
-
-    function showNotePage(page) {
-      noteItems.forEach(function (el, i) {
-        var on = Math.floor(i / perPage) === page - 1;
-        el.classList.toggle('is-off', !on);
-
-        if (on) {
-          // 切回来时重播一次聚拢
-          el.classList.remove('is-in');
-          requestAnimationFrame(function () {
-            requestAnimationFrame(function () { el.classList.add('is-in'); });
-          });
+  var revealItems = Array.from(document.querySelectorAll('.terminal, .metric, .section-head, .project-card, .note-item, .stack-card, .principles > li, .contact-inner'));
+  function reveal(el) { el.classList.remove('reveal-pending'); el.classList.add('is-in'); }
+  var revealObserver = 'IntersectionObserver' in window ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) { reveal(entry.target); revealObserver.unobserve(entry.target); }
+    });
+  }, { threshold: .08, rootMargin: '0px 0px -24px 0px' }) : null;
+  revealItems.forEach(function (el) {
+    el.setAttribute('data-reveal', '');
+    var box = el.getBoundingClientRect();
+    var center = (box.left + box.width / 2) / innerWidth;
+    el.style.setProperty('--fx', box.width > innerWidth * .62 ? '0px' : center < .44 ? '-48px' : center > .56 ? '48px' : '0px');
+    if (!reducedMotion.matches && revealObserver) { el.classList.add('reveal-pending'); revealObserver.observe(el); }
+    else reveal(el);
+  });
+  document.addEventListener('focusin', function (event) {
+    var el = event.target.closest('[data-reveal]');
+    if (el) reveal(el);
+  });
+  reducedMotion.addEventListener('change', function () {
+    if (reducedMotion.matches) { revealItems.forEach(reveal); if (revealObserver) revealObserver.disconnect(); }
+  });
+  var openers = new WeakMap();
+  function openDialog(dialog, opener) {
+    if (!dialog || !dialog.classList.contains('project-dialog') || dialog.open) return;
+    cancelPageScroll();
+    openers.set(dialog, opener || document.activeElement);
+    dialog.showModal();
+    document.body.classList.add('modal-open');
+  }
+  document.querySelectorAll('[data-open]').forEach(function (button) {
+    button.addEventListener('click', function () { openDialog(document.getElementById(button.dataset.open), button); });
+  });
+  document.querySelectorAll('dialog.project-dialog').forEach(function (dialog) {
+    dialog.querySelectorAll('[data-close]').forEach(function (button) { button.addEventListener('click', function () { dialog.close(); }); });
+    var pointerOutside = false;
+    function outside(event) {
+      var box = dialog.getBoundingClientRect();
+      return event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom;
+    }
+    dialog.addEventListener('pointerdown', function (event) { pointerOutside = event.target === dialog && outside(event); });
+    dialog.addEventListener('click', function (event) { if (event.target === dialog && pointerOutside && outside(event)) dialog.close(); });
+    dialog.addEventListener('close', function () {
+      document.body.classList.toggle('modal-open', !!document.querySelector('dialog[open]'));
+      if (location.hash === '#' + dialog.id) history.replaceState(null, '', location.pathname + location.search);
+      var opener = openers.get(dialog);
+      if (opener && opener.isConnected && opener !== document.body) opener.focus({ preventScroll: true });
+    });
+  });
+  function openFromHash() { openDialog(document.getElementById(location.hash.slice(1))); }
+  window.addEventListener('hashchange', openFromHash);
+  openFromHash();
+  var list = document.getElementById('notesList');
+  var buttons = document.querySelectorAll('.page-dot');
+  if (list && buttons.length) {
+    var notes = Array.from(list.querySelectorAll('.note-item'));
+    var status = document.createElement('span');
+    status.className = 'sr-only';
+    status.setAttribute('role', 'status');
+    list.after(status);
+    function showPage(page, announce) {
+      notes.forEach(function (note, index) {
+        var visible = Math.floor(index / 5) === page - 1;
+        note.classList.toggle('is-off', !visible);
+        if (visible && announce && !reducedMotion.matches) {
+          note.classList.add('reveal-pending');
+          requestAnimationFrame(function () { requestAnimationFrame(function () { reveal(note); }); });
         }
       });
-
-      pageDots.forEach(function (b) {
-        b.classList.toggle('is-active', Number(b.getAttribute('data-page')) === page);
+      buttons.forEach(function (button) {
+        var active = Number(button.dataset.page) === page;
+        button.classList.toggle('is-active', active);
+        if (active) button.setAttribute('aria-current', 'page');
+        else button.removeAttribute('aria-current');
       });
-      notesList.setAttribute('data-active', page);
+      list.dataset.active = page;
+      if (announce) status.textContent = '技术笔记，第 ' + page + ' 页，共 ' + buttons.length + ' 页';
+      queueScroll();
     }
-
-    pageDots.forEach(function (b) {
-      b.addEventListener('click', function () {
-        showNotePage(Number(b.getAttribute('data-page')));
-      });
-    });
-
-    // 初始只显示第一页
-    noteItems.forEach(function (el, i) {
-      el.classList.toggle('is-off', i >= perPage);
-    });
+    buttons.forEach(function (button) { button.addEventListener('click', function () { showPage(Number(button.dataset.page), true); }); });
+    showPage(1, false);
   }
-
-  /* ---------- 首屏：指针处纸面提亮 ---------- */
-  var heroEl = document.querySelector('.hero');
-  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-  if (heroEl && fine && !reduceMotion) {
-    var heroRaf = null;
-    heroEl.addEventListener('mousemove', function (e) {
-      if (heroRaf) return;
-      heroRaf = requestAnimationFrame(function () {
-        var r = heroEl.getBoundingClientRect();
-        heroEl.style.setProperty('--hx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
-        heroEl.style.setProperty('--hy', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
-        heroEl.classList.add('is-lit');
-        heroRaf = null;
-      });
-    });
-    heroEl.addEventListener('mouseleave', function () {
-      heroEl.classList.remove('is-lit');
-    });
-  }
-
-  /* ---------- 页脚年份 ---------- */
   var year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());
+  var theme = document.querySelector('.theme-toggle');
+  if (theme) theme.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'dark'));
 })();

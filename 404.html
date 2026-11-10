@@ -72,6 +72,66 @@
   @media (max-width: 720px) {
     .stamp { font-size: 36vw; right: 2vw; bottom: 0; }
   }
+
+  /* 本页不加载 styles.css，阅读模式按钮与提示气泡的样式在这里单独给一份 */
+  .theme-toggle {
+    position: fixed; right: 22px; bottom: 22px; z-index: 60;
+    width: 44px; height: 44px; padding: 0;
+    display: grid; place-items: center;
+    border: 1px solid rgba(43,35,24,.85); border-radius: 50%;
+    background: #2b2318; color: #f5e8c9;
+    cursor: pointer; font: inherit;
+    box-shadow: 0 14px 30px -14px rgba(43,35,24,.55);
+    transition: transform .2s ease, border-color .2s ease, background .25s ease, color .25s ease;
+  }
+  .theme-toggle:hover { transform: translateY(-2px); border-color: rgba(163,70,42,.45); }
+  .theme-toggle:active { transform: translateY(0) scale(.96); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .theme-toggle svg {
+    position: absolute; width: 18px; height: 18px;
+    transition: opacity .25s ease, transform .35s ease;
+  }
+  .theme-toggle .tt-sun { opacity: 0; transform: rotate(40deg) scale(.8); }
+  .theme-toggle .tt-moon { opacity: 1; transform: rotate(0) scale(1); }
+  .theme-toast {
+    position: fixed; right: 22px; bottom: 78px; z-index: 61;
+    max-width: 220px; padding: 10px 14px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: #fbf3df; color: var(--ink);
+    font-size: 13px; line-height: 1.5;
+    box-shadow: 0 14px 34px -20px rgba(42,30,18,.7);
+    opacity: 0; transform: translateY(6px); pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .theme-toast.is-on { opacity: 1; transform: translateY(0); }
+  @media (max-width: 560px) {
+    .theme-toggle { right: 14px; bottom: 14px; width: 42px; height: 42px; }
+    .theme-toast { right: 14px; bottom: 66px; }
+  }
+
+  /* 夜间：沿用主站的暗色纸张配色 */
+  [data-theme="dark"] {
+    --paper: #1b1711; --ink: #f0e6d2; --ink-2: #cfc2aa; --ink-3: #a99b82;
+    --accent: #d9744f; --line: rgba(240,230,210,.14);
+  }
+  [data-theme="dark"] body {
+    background:
+      radial-gradient(900px 520px at 80% -8%, rgba(217,116,79,.10), transparent 62%),
+      radial-gradient(720px 460px at 4% 4%, rgba(217,116,79,.05), transparent 60%),
+      var(--paper);
+  }
+  [data-theme="dark"] body::after { opacity: .16; mix-blend-mode: screen; }
+  [data-theme="dark"] .primary { background: #b8552f; }
+  [data-theme="dark"] .primary:hover { background: #a3462a; }
+  [data-theme="dark"] .ghost { border-color: rgba(240,230,210,.26); }
+  [data-theme="dark"] .stamp { color: rgba(217,116,79,.08); }
+  [data-theme="dark"] .theme-toggle {
+    background: #f0e6d2; color: #1b1711; border-color: rgba(240,230,210,.9);
+    box-shadow: 0 14px 30px -14px rgba(0,0,0,.6);
+  }
+  [data-theme="dark"] .theme-toggle .tt-sun { opacity: 1; transform: rotate(0) scale(1); }
+  [data-theme="dark"] .theme-toggle .tt-moon { opacity: 0; transform: rotate(-40deg) scale(.8); }
+  [data-theme="dark"] .theme-toast { background: #262019; }
 </style>
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>

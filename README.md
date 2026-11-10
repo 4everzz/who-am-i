@@ -17,7 +17,7 @@ python -m http.server 8123
 ```
 
 - 项目弹层深链：`/#p-devfleet`、`/#p-menu`、`/#p-zhiyuan`
-- 文章页：`/posts/why-vector-not-enough.html` 等七篇，列表在首页 `#notes`
+- 文章页：`/posts/why-vector-not-enough.html` 等十四篇，列表在首页 `#notes`（每页 5 条，共 3 页）
 
 ## 二、文件结构
 
@@ -28,17 +28,26 @@ website/
 ├── robots.txt
 ├── sitemap.xml
 ├── nginx.conf.example
-├── posts/              七篇文章，独立页面，可单独分享
+├── posts/              十四篇文章，独立页面，可单独分享
 │   ├── why-vector-not-enough.html      BM25 + RRF 混合检索
 │   ├── hitl-three-bugs.html            38 个单测全绿却没触发
 │   ├── dimension-mismatch.html         阈值与判据的量纲
 │   ├── eval-integrity.html             评测工具的三个静默缺陷
 │   ├── bounded-react-agent.html        手写有限 ReAct
 │   ├── multi-agent-boundary.html       多 Agent 拆分的边界
-│   └── why-not-ragas.html              为什么不用 RAGAS
+│   ├── why-not-ragas.html              为什么不用 RAGAS
+│   ├── mcp-cold-start.html             MCP 首次调用 59.6 秒
+│   ├── false-refusal-zero.html         19 个误拒答怎么归零
+│   ├── agent-stop-conditions.html      Agent 循环的停止条件
+│   ├── sse-reconnect.html              SSE 断线后收到半句话
+│   ├── family-member-race.html         家庭成员上限的并发竞态
+│   ├── prompt-as-code.html             Prompt 当代码管
+│   └── canary-metrics.html             灰度 5% 该看哪三个指标
 └── assets/
     ├── styles.css      含文章页样式（.post-*）
-    ├── app.js
+    ├── app.js          首页脚本：翻页、弹层、动效、笔记分页
+    ├── post.js         文章页脚本：只做移动端导航开合
+    ├── theme.js        日/夜阅读模式
     ├── favicon.svg
     └── og.png          1200×630 分享图
 ```
@@ -53,10 +62,10 @@ website/
    - `<div class="callout">` 重点块
    - `<div class="quote">` 引用块（配 `<cite>`）
    - `<div class="table-wrap"><table>` 表格（`td.up` 绿色标注提升、`td.dim` 弱化）
-4. 在 `index.html` 的 `.notes-list` 里加一条：
+4. 在 `index.html` 的 `.notes-list` 里加一条（`data-page` 按顺序每 5 条一页；超过 15 条要在 `.notes-pager` 里再加一个按钮）：
 
 ```html
-<a class="note-item" href="posts/新文件名.html" data-reveal>
+<a class="note-item" data-page="3" href="posts/新文件名.html" data-reveal>
   <span class="note-kicker">分类 / 标签</span>
   <span class="note-body">
     <span class="note-title">标题</span>
@@ -66,7 +75,7 @@ website/
 </a>
 ```
 
-5. 把 `index.html` 与所有 `posts/*.html` 里的 `?v=日期` 一起换掉，避免缓存。
+5. 把 `index.html` 与所有 `posts/*.html` 里的 `?v=日期` 一起换掉，避免缓存；`sitemap.xml` 也补一条。
 
 ## 四、部署
 
