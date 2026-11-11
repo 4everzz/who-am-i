@@ -44,10 +44,13 @@ website/
 │   ├── prompt-as-code.html             Prompt 当代码管
 │   └── canary-metrics.html             灰度 5% 该看哪三个指标
 └── assets/
-    ├── styles.css      含文章页样式（.post-*）
+    ├── styles.css      共享基础样式（文章页正文与通用组件）
+    ├── home.css        首页布局与响应式样式
+    ├── post.css        文章页布局与响应式样式
     ├── app.js          首页脚本：翻页、弹层、动效、笔记分页
-    ├── post.js         文章页脚本：只做移动端导航开合
+    ├── post.js         文章页脚本：移动端导航与焦点管理
     ├── theme.js        日/夜阅读模式
+    ├── taste/          首页动效模块
     ├── favicon.svg
     └── og.png          1200×630 分享图
 ```
@@ -75,7 +78,7 @@ website/
 </a>
 ```
 
-5. 把 `index.html` 与所有 `posts/*.html` 里的 `?v=日期` 一起换掉，避免缓存；`sitemap.xml` 也补一条。
+5. 把 `index.html`、`404.html`、所有 `posts/*.html` 和对应的 `assets/*.css` / `assets/*.js` 引用里的 `?v=日期` 一起换掉，避免缓存；`sitemap.xml` 也补一条。
 
 ## 四、部署
 
@@ -94,8 +97,8 @@ Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub" | ssh root@47.114.62.82 "mkdi
 # 1. 服务器先备份
 ssh root@47.114.62.82 "tar -czf /root/backups/zmeety-$(date +%Y%m%d-%H%M).tgz -C /var/www/zmeety ."
 
-# 2. 本地打包（排除 .git）
-tar -czf site.tgz --exclude=.git -C website .
+# 2. 本地打包（排除 .git 与本地审查产物）
+tar -czf site.tgz --exclude=.git --exclude=.taste-skill -C website .
 
 # 3. 上传并解包覆盖
 scp site.tgz root@47.114.62.82:/tmp/zmeety-site.tgz
@@ -112,7 +115,7 @@ scp website/nginx.conf.example root@47.114.62.82:/etc/nginx/sites-enabled/zmeety
 ssh root@47.114.62.82 "nginx -t && systemctl reload nginx"
 ```
 
-配置里已包含：HTTPS + HSTS、`error_page 404 /404.html`、静态资源 30 天缓存、HTML
+配置里已包含：HTTPS + HSTS、常见安全响应头、禁止访问运维文档与隐藏文件、`error_page 404 /404.html`、静态资源 30 天缓存、HTML
 `expires -1`、gzip。若换域名，改 `server_name`、`root`、证书路径三处。
 
 **配置改错时不要慌**，`nginx -t` 会拦住，回滚：

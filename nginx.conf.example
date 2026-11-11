@@ -8,7 +8,7 @@ server {
     server_name zmeety.cn www.zmeety.cn;
 
     # 证书续期验证目录放行，其余全部跳 https
-    location /.well-known/acme-challenge/ {
+    location ^~ /.well-known/acme-challenge/ {
         root /var/www/zmeety;
     }
 
@@ -34,14 +34,21 @@ server {
     ssl_prefer_server_ciphers on;
     ssl_session_cache shared:SSL:10m;
 
-    add_header X-Content-Type-Options nosniff;
-    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
     add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), geolocation=(), microphone=()" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://zmeety.cn; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'" always;
 
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
     gzip_types text/plain text/css application/javascript application/json image/svg+xml application/xml;
+
+    location = /nginx.conf.example { deny all; }
+    location = /README.md { deny all; }
+    location ~ ^/\. { deny all; }
 
     # 自定义 404
     error_page 404 /404.html;

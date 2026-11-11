@@ -1672,23 +1672,6 @@ h1 { letter-spacing: -0.015em; }
   position: relative;
 }
 
-/* 桌面开启吸附 */
-html.snap-on {
-  scroll-snap-type: none;
-  /* 桌面滚动由 app.js 逐帧控制，避免原生平滑滚动再次插值。 */
-  scroll-behavior: auto;
-}
-html.snap-on body { overscroll-behavior-y: contain; }
-
-/* 整页轻微收缩，配合子元素聚拢（仅在 JS 启用吸附后生效，避免脚本失败时内容不可见） */
-html.snap-on .pages .page > .wrap {
-  transform: scale(1.014);
-  transition: transform 0.72s var(--ease);
-}
-html.snap-on .pages .page.is-in > .wrap {
-  transform: scale(1);
-}
-
 /* 数据页：放大数字，撑起一屏 */
 .metrics-band.page .metrics-grid { width: 100%; }
 .metrics-band.page .metric { padding: 34px 26px; }
@@ -1769,7 +1752,6 @@ html.snap-on .pages .page.is-in > .wrap {
 
 /* 移动端不做强制吸附，避免内容超一屏时卡住 */
 @media (max-width: 860px) {
-  html.snap-on { scroll-snap-type: none; }
   .pages .page { min-height: auto; }
   .pages .page > .wrap { transform: none; opacity: 1; }
   .scroll-hint { display: none; }
@@ -1898,38 +1880,14 @@ html.snap-on .pages .page.is-in > .wrap {
 [data-theme="dark"] .theme-toggle .tt-sun { opacity: 1; transform: rotate(0) scale(1); }
 [data-theme="dark"] .theme-toggle .tt-moon { opacity: 0; transform: rotate(-40deg) scale(0.8); }
 
-/* 连点提示气泡 */
-
 [data-theme="dark"] .theme-toggle {
   background: #f0e6d2;
   color: #1b1711;
   border-color: rgba(240, 230, 210, 0.9);
 }
 
-.theme-toast {
-  position: fixed;
-  right: 22px;
-  bottom: 78px;
-  z-index: 61;
-  max-width: 220px;
-  padding: 10px 14px;
-  border: 1px solid var(--line-2);
-  border-radius: 10px;
-  background: var(--panel);
-  color: var(--fg);
-  font-size: 13px;
-  line-height: 1.5;
-  box-shadow: 0 14px 34px -20px rgba(42, 30, 18, 0.7);
-  opacity: 0;
-  transform: translateY(6px);
-  pointer-events: none;
-  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
-}
-.theme-toast.is-on { opacity: 1; transform: translateY(0); }
-
 @media (max-width: 560px) {
   .theme-toggle { right: 14px; bottom: 14px; width: 42px; height: 42px; }
-  .theme-toast { right: 14px; bottom: 66px; }
 }
 
 

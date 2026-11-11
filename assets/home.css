@@ -1,5 +1,5 @@
 /* Homepage only. The shared stylesheet continues to serve the article pages. */
-html:has(> .home-page) { scroll-behavior: auto; scroll-padding-top: 0; }
+html:has(.home-page) { scroll-behavior: auto; scroll-padding-top: 0; }
 .home-page {
   --bg: #f5e8c9;
   --bg-alt: #efe0bb;
@@ -110,7 +110,6 @@ html:has(> .home-page) { scroll-behavior: auto; scroll-padding-top: 0; }
   box-shadow: none;
   z-index: auto;
 }
-.home-page .theme-toast { display: none; }
 .home-page .pages { width: 100%; border: 0; box-shadow: none; background: transparent; overflow-x: clip; }
 .home-page .pages .page {
   display: flex;

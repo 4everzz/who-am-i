@@ -13,7 +13,6 @@ body { --post-header-height: 80px; --paper-light: #fffdf0a6; --paper-rule: #8765
 .header-actions { gap: 16px; }
 .menu-btn { display: none; }
 .header-actions .theme-toggle, [data-theme="dark"] .header-actions .theme-toggle { position: relative; right: auto; bottom: auto; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--fg); box-shadow: none; z-index: auto; }
-.theme-toast { display: none; }
 
 .post { max-width: 1040px; }
 .post-back { min-height: 44px; font-size: 16px; color: var(--dim); }

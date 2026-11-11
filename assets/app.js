@@ -131,14 +131,24 @@
     if (direction) stepPage(direction);
     else moveTo(event.key === 'Home' ? 0 : document.documentElement.scrollHeight);
   });
+  function scrollToHash(hash, push) {
+    if (!hash) return false;
+    var target = document.getElementById(hash.slice(1));
+    if (!target) return false;
+    if (push) history.pushState(null, '', hash);
+    cancelPageScroll();
+    moveTo(target.getBoundingClientRect().top + scrollY - (header ? header.offsetHeight : 0));
+    return true;
+  }
+
   document.querySelectorAll('.brand, .nav a, .hero-actions a').forEach(function (link) {
     link.addEventListener('click', function (event) {
-      var target = document.getElementById(link.hash.slice(1));
-      if (!target || !link.hash || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-      event.preventDefault();
-      history.pushState(null, '', link.hash);
-      moveTo(target.getBoundingClientRect().top + scrollY - (header ? header.offsetHeight : 0));
+      if (!link.hash || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      if (scrollToHash(link.hash, true)) event.preventDefault();
     });
+  });
+  window.addEventListener('popstate', function () {
+    openFromHash();
   });
   window.addEventListener('pointerdown', cancelPageScroll, { passive: true });
   window.addEventListener('touchstart', cancelPageScroll, { passive: true });
@@ -194,7 +204,12 @@
       if (opener && opener.isConnected && opener !== document.body) opener.focus({ preventScroll: true });
     });
   });
-  function openFromHash() { openDialog(document.getElementById(location.hash.slice(1))); }
+  function openFromHash() {
+    var target = document.getElementById(location.hash.slice(1));
+    if (target && target.classList.contains('project-dialog')) openDialog(target);
+    else if (location.hash) scrollToHash(location.hash, false);
+    else moveTo(0);
+  }
   window.addEventListener('hashchange', openFromHash);
   openFromHash();
   var list = document.getElementById('notesList');
