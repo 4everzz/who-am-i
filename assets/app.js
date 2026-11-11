@@ -55,7 +55,7 @@
   updateScroll();
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   var desktop = window.matchMedia('(min-width: 901px) and (pointer: fine)');
-  var pages = Array.from(document.querySelectorAll('.pages > .page'));
+  var pages = Array.from(document.querySelectorAll('.pages > .page:not(#work), #work > .work-screen'));
   var scrollFrame = 0;
   function cancelPageScroll() { cancelAnimationFrame(scrollFrame); scrollFrame = 0; }
   function moveTo(y) {
@@ -72,20 +72,27 @@
     }
     scrollFrame = requestAnimationFrame(frame);
   }
-  // Long sections receive extra stops with overlapping viewports, so no content is skipped.
+  // Use screen boundaries, not the few overflow pixels at the bottom of a section.
+  // Divide oversized screens evenly in short/zoomed windows, keeping all content reachable.
   function pageStops() {
     var offset = header ? header.offsetHeight : 0;
     var view = innerHeight - offset;
+    var max = document.documentElement.scrollHeight - innerHeight;
     var stops = [0];
     pages.forEach(function (page) {
       var top = Math.max(0, page.getBoundingClientRect().top + scrollY - offset);
-      var overflow = Math.max(0, page.offsetHeight - view);
-      var steps = Math.ceil(overflow / (view * .85));
+      var padding = parseFloat(getComputedStyle(page).paddingBottom) || 0;
+      var contentHeight = page.offsetHeight - padding;
       stops.push(top);
-      for (var i = 1; i <= steps; i++) stops.push(top + overflow * i / steps);
+      if (contentHeight > view + 2) {
+        var steps = Math.ceil(page.offsetHeight / view);
+        for (var i = 1; i < steps; i++) stops.push(top + page.offsetHeight * i / steps);
+      }
     });
-    stops.push(document.documentElement.scrollHeight - innerHeight);
-    return stops.sort(function (a, b) { return a - b; });
+    stops.push(max);
+    return stops.map(function (y) { return Math.max(0, Math.min(y, max)); })
+      .sort(function (a, b) { return a - b; })
+      .filter(function (y, i, all) { return !i || y - all[i - 1] > 3; });
   }
   function stepPage(direction) {
     var stops = pageStops();
@@ -198,6 +205,20 @@
     status.className = 'sr-only';
     status.setAttribute('role', 'status');
     list.after(status);
+    function sizeNotesList() {
+      var clone = list.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;min-height:0;width:' + list.clientWidth + 'px';
+      list.parentNode.appendChild(clone);
+      var heights = [];
+      clone.querySelectorAll('.note-item').forEach(function (note, index) {
+        note.classList.remove('is-off');
+        var page = Math.floor(index / 5);
+        heights[page] = (heights[page] || 0) + note.offsetHeight;
+      });
+      clone.remove();
+      list.style.minHeight = (Math.max.apply(null, heights) + 6) + 'px';
+    }
     function showPage(page, announce) {
       notes.forEach(function (note, index) {
         var visible = Math.floor(index / 5) === page - 1;
@@ -219,6 +240,9 @@
     }
     buttons.forEach(function (button) { button.addEventListener('click', function () { showPage(Number(button.dataset.page), true); }); });
     showPage(1, false);
+    sizeNotesList();
+    window.addEventListener('resize', sizeNotesList);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeNotesList);
   }
   var year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());

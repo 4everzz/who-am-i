@@ -22,9 +22,9 @@
 <meta name="twitter:description" content="把 LLM 的不确定性关进工程框架：项目、技术笔记与工程取舍。">
 <meta name="twitter:image" content="https://zmeety.cn/assets/og.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=20261110k">
+<link rel="stylesheet" href="assets/styles.css?v=20261110m">
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
-<link rel="stylesheet" href="assets/home.css?v=20261110k">
+<link rel="stylesheet" href="assets/home.css?v=20261111b">
 <link rel="stylesheet" href="assets/taste/motion/motion.css">
 <script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
 </head>
@@ -144,7 +144,8 @@
 
   <!-- ==================== 项目 ==================== -->
   <section class="section page" id="work">
-    <div class="wrap">
+    <span class="paper-chapter" aria-hidden="true">01</span>
+    <div class="wrap work-screen" id="work-featured">
       <div class="section-head">
         <div class="section-kicker">01 / Selected work</div>
         <h2>三个从 0 到 1 的项目</h2>
@@ -200,6 +201,11 @@
         </div>
         </article>
 
+    </div>
+    <div class="wrap work-screen" id="work-more">
+      <div class="section-head work-continuation">
+        <div class="section-kicker">01 / Selected work</div>
+      </div>
       <div class="project-grid">
         <!-- 小家开饭啦 -->
         <article class="project-card">
@@ -275,6 +281,7 @@
 
   <!-- ==================== 技术笔记 ==================== -->
   <section class="section page" id="notes">
+    <span class="paper-chapter" aria-hidden="true">02</span>
     <div class="wrap">
       <div class="section-head">
         <div class="section-kicker">02 / Notes</div>
@@ -393,11 +400,11 @@
 
   <!-- ==================== 技能 ==================== -->
   <section class="section page" id="stack">
+    <span class="paper-chapter" aria-hidden="true">03</span>
     <div class="wrap">
       <div class="section-head">
         <div class="section-kicker">03 / Stack</div>
         <h2>技术栈</h2>
-        <p class="section-note">只列项目里真正用过的。没写过的不往上放。</p>
       </div>
 
       <div class="stack-grid">
@@ -442,15 +449,12 @@
         </div>
       </div>
 
-      <p class="stack-foot">
-        日常使用 Codex、Claude Code、Cursor 等 AI 编程工具；评测框架评估过 RAGAS，
-        因依赖降级问题改为自实现同算法。
-      </p>
     </div>
   </section>
 
   <!-- ==================== 原则 ==================== -->
   <section class="section section-alt page" id="principles">
+    <span class="paper-chapter" aria-hidden="true">04</span>
     <div class="wrap">
       <div class="section-head">
         <div class="section-kicker">04 / How I work</div>
@@ -493,6 +497,7 @@
 
   <!-- ==================== 关于 ==================== -->
   <section class="section contact page page-last" id="about">
+    <span class="paper-chapter" aria-hidden="true">05</span>
     <div class="wrap">
       <div class="contact-inner" data-moment="word-highlight">
         <div class="section-kicker">05 / About</div>
@@ -869,7 +874,7 @@
 </dialog>
 
 
-<script src="assets/app.js?v=20261110k"></script>
+<script src="assets/app.js?v=20261111a"></script>
 
 
 <script src="assets/theme.js?v=20261028c" defer></script>

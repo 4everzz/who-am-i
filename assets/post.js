@@ -29,7 +29,7 @@
   });
 
   // 从移动端拉宽到桌面时，清掉展开态
-  var wide = window.matchMedia('(min-width: 861px)');
+  var wide = window.matchMedia('(min-width: 701px)');
   function onWide() { if (wide.matches) setOpen(false); }
   if (wide.addEventListener) wide.addEventListener('change', onWide);
   else if (wide.addListener) wide.addListener(onWide);
