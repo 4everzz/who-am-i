@@ -8,6 +8,38 @@
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/styles.css?v=20261110n">
 <link rel="stylesheet" href="../assets/post.css?v=20261112a">
+<style>
+  .incident-label { display: none; }
+  @media (max-width: 700px) {
+    .incident-table { overflow: visible; }
+    .post-body .incident-table table,
+    .incident-table tbody,
+    .incident-table tr,
+    .incident-table td { display: block; }
+    .incident-table thead {
+      position: absolute; width: 1px; height: 1px; padding: 0;
+      margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0);
+      white-space: nowrap; border: 0;
+    }
+    .incident-table tbody { display: grid; gap: 14px; }
+    .incident-table tr {
+      padding: 16px; border: 1px solid var(--line); border-radius: 6px;
+      background: var(--panel);
+    }
+    .post-body .incident-table td {
+      padding: 0; border: 0; font-size: 15px; line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+    .post-body .incident-table td + td { margin-top: 10px; }
+    .post-body .incident-table td:first-child {
+      color: var(--accent); font-weight: 700;
+    }
+    .incident-label {
+      display: block; margin-bottom: 2px; color: var(--mute);
+      font-size: 13px; font-weight: 600;
+    }
+  }
+</style>
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
@@ -52,34 +84,34 @@
 
   <h2>一、五次事故</h2>
 
-  <div class="table-wrap">
+  <div class="table-wrap incident-table">
     <table>
       <thead><tr><th>#</th><th>错配</th><th>后果</th></tr></thead>
       <tbody>
         <tr>
           <td>1</td>
-          <td><code>CONF_MIN_TOP_GAP</code> 设为 0.15，而 RRF 分差上限只有 0.0161</td>
-          <td>条件<strong>恒不触发</strong>——阈值比这个量纲的最大可能值还大一个数量级</td>
+          <td><span class="incident-label" aria-hidden="true">错配</span><code>CONF_MIN_TOP_GAP</code> 设为 0.15，而 RRF 分差上限只有 0.0161</td>
+          <td><span class="incident-label" aria-hidden="true">后果</span>条件<strong>恒不触发</strong>——阈值比这个量纲的最大可能值还大一个数量级</td>
         </tr>
         <tr>
           <td>2</td>
-          <td><code>BASE_TOKEN_THRESHOLD = 2000</code> 是为「多轮累积」设计的，却用来判「单轮检索」</td>
-          <td>每轮都触发压缩，<strong>每轮白花 10.9 秒</strong></td>
+          <td><span class="incident-label" aria-hidden="true">错配</span><code>BASE_TOKEN_THRESHOLD = 2000</code> 是为「多轮累积」设计的，却用来判「单轮检索」</td>
+          <td><span class="incident-label" aria-hidden="true">后果</span>每轮都触发压缩，<strong>每轮白花 10.9 秒</strong></td>
         </tr>
         <tr>
           <td>3</td>
-          <td>SQL join 时漏了 <code>batch</code> 字段</td>
-          <td>算出「73% 数据不自洽」的<strong>假结论</strong></td>
+          <td><span class="incident-label" aria-hidden="true">错配</span>SQL join 时漏了 <code>batch</code> 字段</td>
+          <td><span class="incident-label" aria-hidden="true">后果</span>算出「73% 数据不自洽」的<strong>假结论</strong></td>
         </tr>
         <tr>
           <td>4</td>
-          <td>假设「最低分与最低位次必须同源」</td>
-          <td>差点把顶尖院校的百名位次误判成数据错误</td>
+          <td><span class="incident-label" aria-hidden="true">错配</span>假设「最低分与最低位次必须同源」</td>
+          <td><span class="incident-label" aria-hidden="true">后果</span>差点把顶尖院校的百名位次误判成数据错误</td>
         </tr>
         <tr>
           <td>5</td>
-          <td>把 <code>admission_query</code>（「话题属于录取」）当成「需要考生个人条件」</td>
-          <td>新用户第一句咨询<strong>就被要求先报分数</strong></td>
+          <td><span class="incident-label" aria-hidden="true">错配</span>把 <code>admission_query</code>（「话题属于录取」）当成「需要考生个人条件」</td>
+          <td><span class="incident-label" aria-hidden="true">后果</span>新用户第一句咨询<strong>就被要求先报分数</strong></td>
         </tr>
       </tbody>
     </table>

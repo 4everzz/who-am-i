@@ -509,12 +509,12 @@ html:has(.home-page) { scroll-behavior: auto; scroll-padding-top: 0; }
   .home-page.nav-open .nav { display: flex; }
   .home-page .nav a { min-height: 60px; padding: 6px 0; font-family: var(--serif); font-size: 25px; border-bottom: 1px solid var(--line); }
   .home-page .nav a::after { display: none; }
-  .home-page .pages .page, .home-page .pages #work { padding-block: 64px; }
-  .home-page .pages .hero { min-height: calc(100svh - 68px); padding: 40px 0 32px; gap: 32px; }
-  .home-page .hero-grid { gap: 32px; }
+  .home-page .pages .page, .home-page .pages #work { padding-block: 48px; }
+  .home-page .pages .hero { min-height: calc(100svh - 68px); padding: 32px 0 28px; gap: 24px; }
+  .home-page .hero-grid { gap: 24px; }
   .home-page .eyebrow { font-size: 15px; margin-bottom: 20px; }
-  .home-page .pages .hero h1 { font-size: clamp(32px, 9vw, 46px); line-height: 1.3; letter-spacing: -.025em; }
-  .home-page .hero-lead { font-size: 16px; line-height: 1.8; margin-top: 18px; }
+  .home-page .pages .hero h1 { font-size: clamp(29px, 8vw, 34px); line-height: 1.35; letter-spacing: -.025em; }
+  .home-page .hero-lead { font-size: 15px; line-height: 1.7; margin-top: 16px; }
   .home-page .hero-actions { margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .home-page .hero-actions .btn { width: 100%; padding-inline: 8px; font-size: 16px; }
   .home-page .terminal { box-shadow: 6px 6px 0 var(--bg-alt); }
@@ -530,9 +530,9 @@ html:has(.home-page) { scroll-behavior: auto; scroll-padding-top: 0; }
   .home-page .metric-range .arrow { margin-inline: 1px; }
   .home-page .metric-range small { font-size: 12px; margin-left: 1px; }
   .home-page .metric-label { font-size: 15px; line-height: 1.6; }
-  .home-page .section-head { margin-bottom: 32px; }
+  .home-page .section-head { margin-bottom: 24px; }
   .home-page .section-kicker { margin-bottom: 12px; }
-  .home-page h2 { font-size: 30px; }
+  .home-page h2 { font-size: 26px; }
   .home-page .pages #work .project-featured { grid-template-columns: 1fr; padding: 24px; gap: 32px; }
   .home-page .pages #work .project-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
   .home-page .pages #work .project-card h3 { font-size: 25px; }
@@ -546,12 +546,15 @@ html:has(.home-page) { scroll-behavior: auto; scroll-padding-top: 0; }
   .home-page .note-arrow { grid-column: 3; grid-row: 1 / 3; }
   .home-page .note-title { font-size: 17px; line-height: 1.65; }
   .home-page .section-note { font-size: 16px; line-height: 1.75; }
-  .home-page .principles h3 { font-size: 20px; }
-  .home-page .principles p { font-size: 16px; line-height: 1.75; }
-  .home-page .stack-grid, .home-page .principles { grid-template-columns: 1fr; gap: 32px; }
-  .home-page .stack-card dl { grid-template-columns: 52px 1fr; gap: 12px; }
-  .home-page .principles li, .home-page .principles li:first-child { padding: 24px; }
-  .home-page .contact-inner > p { font-size: 22px; line-height: 1.75; }
+  .home-page .principles h3 { font-size: 18px; }
+  .home-page .principles p { margin-top: 8px; font-size: 15px; line-height: 1.7; }
+  .home-page .stack-grid, .home-page .principles { grid-template-columns: 1fr; gap: 20px; }
+  .home-page .stack-card h3 { margin-bottom: 16px; font-size: 19px; }
+  .home-page .stack-card dl { grid-template-columns: 52px 1fr; gap: 10px 12px; }
+  .home-page .stack-card dt { font-size: 14px; line-height: 1.7; }
+  .home-page .stack-card dd { font-size: 15px; line-height: 1.7; }
+  .home-page .principles li, .home-page .principles li:first-child { padding: 20px; gap: 12px; }
+  .home-page .contact-inner > p { margin-top: 24px; font-size: 18px; line-height: 1.7; }
   .home-page .about-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 48px; }
   .home-page .site-footer { padding: 20px 0; }
   .home-page .footer-inner { align-items: flex-start; gap: 4px; }
@@ -685,9 +688,9 @@ html:has(.home-page) { scroll-behavior: auto; scroll-padding-top: 0; }
   .project-tab strong { font-size: 14px; }
   .project-tab small { font-size: 11px; }
   .project-stage { padding: 24px 20px 20px; box-shadow: 7px 7px 0 color-mix(in srgb, var(--bg-alt) 72%, transparent); }
-  .project-slide h3 { font-size: 38px; }
+  .project-slide h3 { font-size: 30px; }
   .project-slide .project-meta { gap: 7px; margin-bottom: 20px; }
-  .project-slide .project-intro { margin-top: 20px; font-size: 17px; line-height: 1.75; }
+  .project-slide .project-intro { margin-top: 16px; font-size: 15px; line-height: 1.7; }
   .project-slide .project-points { margin-top: 20px; }
   .project-slide-aside { padding: 18px; }
   .project-dots { margin-top: 24px; }
