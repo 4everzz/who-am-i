@@ -24,7 +24,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/styles.css?v=20261110n">
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
-<link rel="stylesheet" href="assets/home.css?v=20261112d">
+<link rel="stylesheet" href="assets/home.css?v=20261112e">
 <link rel="stylesheet" href="assets/taste/motion/motion.css">
 <script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
 </head>
@@ -43,7 +43,7 @@
       </span>
     </a>
 
-    <nav class="nav" id="nav" aria-label="主导航"><a href="index.html" aria-current="page">首页</a>
+    <nav class="nav" id="nav" aria-label="主导航"><a href="index.html" class="is-active" aria-current="page">首页</a>
       <a href="works.html">作品</a>
       <a href="notes.html">笔记</a>
       <a href="skills-principles.html">技能与原则</a>
@@ -211,7 +211,7 @@
             <aside class="project-slide-aside"><span class="slide-aside-kicker">RAG QUALITY</span><strong>混合检索与事实校验</strong><div class="slide-flow"><span>双路召回</span><i>→</i><span>RRF 融合</span><i>→</i><span>事实保护</span></div><p>结构化校验与回归评测共同约束回答；35 题评测中误拒答从 19 降至 0。</p></aside>
           </article>
 
-          <div class="project-dots" role="tablist" aria-label="项目页码"><button class="project-dot is-active" type="button" role="tab" aria-selected="true" aria-label="第 1 个项目" data-project-index="0"></button><button class="project-dot" type="button" role="tab" aria-selected="false" aria-label="第 2 个项目" data-project-index="1"></button><button class="project-dot" type="button" role="tab" aria-selected="false" aria-label="第 3 个项目" data-project-index="2"></button></div>
+          <div class="project-dots" role="group" aria-label="项目页码"><button class="project-dot is-active" type="button" aria-pressed="true" aria-label="第 1 个项目" data-project-index="0"></button><button class="project-dot" type="button" aria-pressed="false" aria-label="第 2 个项目" data-project-index="1"></button><button class="project-dot" type="button" aria-pressed="false" aria-label="第 3 个项目" data-project-index="2"></button></div>
           <p class="sr-only" data-project-live aria-live="polite">当前项目：DevFleet</p>
         </div>
       </div>
@@ -813,7 +813,7 @@
 </dialog>
 
 
-<script src="assets/app.js?v=20261112b"></script>
+<script src="assets/app.js?v=20261112c"></script>
 
 
 <script src="assets/theme.js?v=20261112a" defer></script>
