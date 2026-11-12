@@ -5,3 +5,12 @@ desktop.ini
 _shots/
 .taste-skill/
 node_modules/
+.local/
+.venv*/
+.env
+.env.*
+!.env.example
+__pycache__/
+.pytest_cache/
+*.sqlite
+*.sqlite-*

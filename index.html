@@ -24,7 +24,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/styles.css?v=20261110n">
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
-<link rel="stylesheet" href="assets/home.css?v=20261111c">
+<link rel="stylesheet" href="assets/home.css?v=20261112c">
 <link rel="stylesheet" href="assets/taste/motion/motion.css">
 <script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
 </head>
@@ -43,12 +43,11 @@
       </span>
     </a>
 
-    <nav class="nav" id="nav" aria-label="主导航">
-      <a href="#work">作品</a>
-      <a href="#notes">笔记</a>
-      <a href="#stack">技能</a>
-      <a href="#principles">原则</a>
-      <a href="#about">关于</a>
+    <nav class="nav" id="nav" aria-label="主导航"><a href="index.html" aria-current="page">首页</a>
+      <a href="works.html">作品</a>
+      <a href="notes.html">笔记</a>
+      <a href="skills-principles.html">技能与原则</a>
+      <a href="about.html">关于</a>
     </nav>
 
     <div class="header-actions">
@@ -85,11 +84,11 @@
         <p class="hero-note">出错时能定位，改坏了能回滚。</p>
 
         <div class="hero-actions">
-          <a class="btn btn-primary btn--primary" href="#work">
+          <a class="btn btn-primary btn--primary" href="works.html">
             看三个项目
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
           </a>
-          <a class="btn btn-ghost btn--secondary" href="#notes">
+          <a class="btn btn-ghost btn--secondary" href="notes.html">
             读技术笔记
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
@@ -145,136 +144,76 @@
   <!-- ==================== 项目 ==================== -->
   <section class="section page" id="work">
     <span class="paper-chapter" aria-hidden="true">01</span>
-    <div class="wrap work-screen" id="work-featured">
-      <div class="section-head">
-        <div class="section-kicker">01 / Selected work</div>
-        <h2>三个从 0 到 1 的项目</h2>
+    <div class="wrap work-screen project-showcase" data-project-carousel aria-label="精选项目">
+      <div class="showcase-head">
+        <div>
+          <div class="section-kicker">01 / Selected work</div>
+          <h2>精选项目</h2>
+        </div>
+        <div class="showcase-status"><span data-project-counter>01 / 03</span></div>
       </div>
 
-      <!-- DevFleet -->
-      <article class="project-card project-featured">
-        <div class="project-main">
-          <div class="project-meta">
-            <span class="project-index">01</span>
-            <span class="tag tag-accent">个人项目</span>
-            <span class="tag">Multi-Agent 编排</span>
-          </div>
-
-          <h3>DevFleet</h3>
-          <p class="project-sub">Multi-Agent 研发协作平台</p>
-          <p class="project-intro">以研发数据与证据检索为底座，编排分诊、审查、排障 Agent 协作。跨领域任务按依赖调度，结论可溯源，写操作经人工确认后执行。</p>
-
-          <p class="project-desc">
-            判断一条 PR 能不能合并，研发要横跨任务、代码改动、评审意见、构建日志与项目文档反复比对。
-            DevFleet 把这六类信息统一成一个「每句话都能给出处」的研发资料库，
-            让 AI 直接回答三个问题：这个任务该谁做、这个改动该不该合、这次构建为什么失败。
-          </p>
-
-          <ul class="project-points">
-            <li>三个专职 Agent 分别负责分诊、审查与排障，跨领域问题再由 Planner 拆解、Observer 校验证据冲突。</li>
-            <li>每个结论带编号引用、可回溯原文；不同仓库的资料按 <code>repo_id</code> 隔离，互不串用。</li>
-            <li>写操作一律先落草稿，过权限校验与人工确认才真正调用 GitHub API，全程审计留痕。</li>
-          </ul>
-
-          <div class="project-foot">
-          <ul class="chips" aria-label="技术栈">
-            <li>Python</li><li>FastAPI</li><li>LangGraph</li><li>Milvus</li><li>MCP</li><li>SSE</li><li>PostgreSQL</li><li>Next.js</li>
-          </ul>
-          <button class="btn btn-outline btn--secondary" type="button" data-open="p-devfleet">
-            架构与设计
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </button>
-        </div>
-        </div>
-
-        <div class="project-aside">
-          <p class="flow-caption">跨领域问题 · 核心协作链路（简化）</p>
-          <ol class="agent-flow" aria-label="简化的跨领域协作链路：研发问题经 Planner 拆解，Orchestrator 按依赖调度分诊、审查和排障 Agent，Observer 校验证据，Synthesis 汇总带引用的结论">
-            <li><span class="flow-node">研发问题</span></li>
-            <li><span class="flow-node flow-core">Planner · 任务拆解</span></li>
-            <li><span class="flow-node">Orchestrator · 依赖调度</span></li>
-            <li><div class="flow-lanes"><span>分诊</span><span>审查</span><span>排障</span></div></li>
-            <li><span class="flow-node">Observer · 证据校验</span></li>
-            <li><span class="flow-node flow-result">Synthesis · 引用汇总</span></li>
-          </ol>
-          <p class="flow-context">数据接入与检索提供证据<br>权限校验、人工确认与审计约束写操作</p>
-        </div>
-        </article>
-
-    </div>
-    <div class="wrap work-screen" id="work-more">
-      <div class="section-head work-continuation">
-        <div class="section-kicker">01 / Selected work</div>
-      </div>
-      <div class="project-grid">
-        <!-- 小家开饭啦 -->
-        <article class="project-card">
-          <div class="project-meta">
-            <span class="project-index">02</span>
-            <span class="tag tag-live"><i aria-hidden="true"></i>已上线</span>
-            <span class="tag">全栈交付</span>
-          </div>
-
-          <h3>小家开饭啦</h3>
-          <p class="project-sub">家庭饮食管理与 AI 助手</p>
-          <p class="project-intro">把家庭菜单、冰箱库存和用餐计划放在一起。AI 助手按现有食材推荐菜谱，只读工具有明确边界，写入由用户确认。</p>
-
-          <p class="project-desc">
-            家庭成员的菜单、冰箱库存、收藏与点单集中到一处，不用再在群聊里反复确认「买什么、还剩什么」。
-            内置一个只给只读权限的 AI 助手，按现有食材推荐菜谱。
-          </p>
-
-          <ul class="project-points">
-            <li>一套 UniApp + Vue 3 代码交付 H5 / 小程序 / App，管理后台是独立的 Vue 3 工程。</li>
-            <li>手写 ReAct 循环，只开 5 个只读工具、最多 4 步收口，写入一律由用户确认后执行。</li>
-            <li><code>SELECT … FOR UPDATE</code> 锁行计数，收敛并发加入家庭的成员上限竞态。</li>
-          </ul>
-
-          <div class="project-foot">
-            <ul class="chips" aria-label="技术栈">
-              <li>UniApp</li><li>Vue 3</li><li>FastAPI</li><li>PostgreSQL</li><li>Redis</li><li>MCP</li>
-            </ul>
-            <div class="foot-actions">
-              <a class="link-out" href="https://menu.zmeety.cn" target="_blank" rel="noopener">访问应用
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
-              </a>
-              <button class="btn btn-outline btn--secondary btn-sm" type="button" data-open="p-menu">详情</button>
+      <div class="showcase-layout">
+        <div class="project-orbit-panel">
+          <div class="project-compass" role="group" aria-label="点击罗盘上的项目名称切换项目">
+            <svg class="compass-svg" viewBox="0 0 280 280" fill="none" aria-hidden="true">
+              <circle class="compass-scale" cx="140" cy="140" r="134" stroke="currentColor" stroke-opacity=".4" stroke-width="5" stroke-dasharray=".6 5.25"/>
+              <circle cx="140" cy="140" r="118" stroke="currentColor" stroke-opacity=".28"/>
+              <circle cx="140" cy="140" r="96" stroke="currentColor" stroke-opacity=".18"/>
+              <circle cx="140" cy="140" r="57" stroke="currentColor" stroke-opacity=".38"/>
+              <path d="M140 15v28M140 237v28M15 140h28M237 140h28" stroke="currentColor" stroke-opacity=".35"/>
+              <path d="M140 49v182M49 140h182" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="2 8"/>
+            </svg>
+            <div class="compass-notch-ring" data-compass-ring>
+              <button class="compass-notch is-active" type="button" data-project-index="0" aria-label="切换到 DevFleet" aria-pressed="true" style="--notch-angle: 0deg"><span class="compass-notch-content"><b>01</b><strong>DevFleet</strong></span></button>
+              <button class="compass-notch" type="button" data-project-index="1" aria-label="切换到小家开饭啦" aria-pressed="false" style="--notch-angle: 120deg"><span class="compass-notch-content"><b>02</b><strong>小家开饭啦</strong></span></button>
+              <button class="compass-notch" type="button" data-project-index="2" aria-label="切换到智愿通" aria-pressed="false" style="--notch-angle: 240deg"><span class="compass-notch-content"><b>03</b><strong>智愿通</strong></span></button>
             </div>
+            <div class="compass-core" aria-hidden="true"><span>PROJECT</span><strong data-compass-number>01</strong><b data-compass-name>DevFleet</b></div>
+            <span class="compass-signal" aria-hidden="true"></span>
           </div>
-        </article>
+        </div>
 
-        <!-- 智愿通 -->
-        <article class="project-card">
-          <div class="project-meta">
-            <span class="project-index">03</span>
-            <span class="tag">问答系统</span>
-            <span class="tag">RAG 质量工程</span>
-          </div>
-
-          <h3>智愿通</h3>
-          <p class="project-sub">高考志愿填报智能体</p>
-          <p class="project-intro">将招生信息做成可追溯的问答系统。分数换算位次、院校按冲稳保筛选，用混合检索和自建评测集检查每条回答。</p>
-
-          <p class="project-desc">
-            把散落在考试院官网、高校招生网与院校档案里的招生信息，做成可问答的检索链路。
-            难点不在「能回答」，而在「答的每个数字都能回溯到出处，并且不该拒答的不拒答」。
-          </p>
-
-          <ul class="project-points">
-            <li>向量 + 关键词双路召回后 RRF 融合，领域词典从结构化库动态读取，简称不再漏检。</li>
-            <li>LangGraph 状态机串联抽取、校验、SQL、打标与事实校验，模型改写的分数位次直接打回。</li>
-            <li>自建 100 题评测集与句级断言评测，报告带指纹防过期、可断点续跑。</li>
-          </ul>
-
-          <div class="project-foot">
-            <ul class="chips" aria-label="技术栈">
-              <li>LangGraph</li><li>pgvector</li><li>RRF</li><li>jieba</li><li>FastAPI</li><li>pytest</li>
-            </ul>
-            <div class="foot-actions">
-              <button class="btn btn-outline btn--secondary btn-sm" type="button" data-open="p-zhiyuan">详情</button>
+        <div class="project-stage" tabindex="0">
+          <article class="project-slide is-active" data-project-slide="0" aria-labelledby="project-slide-title-0">
+            <div class="project-slide-copy">
+              <div class="project-meta"><span class="project-index">01</span><span class="tag tag-accent">个人项目</span><span class="tag">Multi-Agent 编排</span></div>
+              <h3 id="project-slide-title-0">DevFleet</h3>
+              <p class="project-sub">Multi-Agent 研发协作平台</p>
+              <p class="project-intro">把研发数据、证据检索和 Agent 协作放到同一条链路里，让任务分诊、代码审查与构建排障都有出处可查。</p>
+              <ul class="project-points"><li>Planner 拆解任务，专职 Agent 分别处理分诊、审查和排障。</li><li>结论带编号引用，资料按仓库隔离；写操作经过人工确认并留下审计。</li></ul>
+              <div class="project-slide-actions"><button class="btn btn-outline btn--secondary" type="button" data-open="p-devfleet">查看架构与设计 <span aria-hidden="true">→</span></button></div>
             </div>
-          </div>
-        </article>
+            <aside class="project-slide-aside"><span class="slide-aside-kicker">AGENT ORCHESTRATION</span><strong>多智能体协同与证据治理</strong><div class="slide-flow"><span>任务拆解</span><i>→</i><span>并行调度</span><i>→</i><span>证据校验</span></div><p>专职 Agent 按依赖协作，结论可追溯；外部写操作经人工确认并留痕。</p></aside>
+          </article>
+
+          <article class="project-slide" data-project-slide="1" aria-labelledby="project-slide-title-1" hidden>
+            <div class="project-slide-copy">
+              <div class="project-meta"><span class="project-index">02</span><span class="tag tag-live"><i aria-hidden="true"></i>已上线</span><span class="tag">全栈交付</span></div>
+              <h3 id="project-slide-title-1">小家开饭啦</h3>
+              <p class="project-sub">家庭饮食管理与 AI 助手</p>
+              <p class="project-intro">把菜单、冰箱库存和用餐计划放在一起，让 AI 根据已有食材给出建议，同时把写入权限留给用户确认。</p>
+              <ul class="project-points"><li>一套 UniApp + Vue 3 交付 H5、小程序和 App，后台独立维护。</li><li>手写有限 ReAct，只开放只读工具；数据库行锁收敛并发加入家庭的竞态。</li></ul>
+              <div class="project-slide-actions"><a class="link-out" href="https://menu.zmeety.cn" target="_blank" rel="noopener">访问应用 <span aria-hidden="true">↗</span></a><button class="btn btn-outline btn--secondary" type="button" data-open="p-menu">查看项目详情 <span aria-hidden="true">→</span></button></div>
+            </div>
+            <aside class="project-slide-aside"><span class="slide-aside-kicker">AGENT ENGINEERING</span><strong>有限步数的 ReAct 智能体</strong><div class="slide-flow"><span>只读工具</span><i>→</i><span>步数约束</span><i>→</i><span>人工确认</span></div><p>手写 Agent 循环与 MCP 接入，以明确的执行边界控制工具调用和业务写入。</p></aside>
+          </article>
+
+          <article class="project-slide" data-project-slide="2" aria-labelledby="project-slide-title-2" hidden>
+            <div class="project-slide-copy">
+              <div class="project-meta"><span class="project-index">03</span><span class="tag">问答系统</span><span class="tag">RAG 质量工程</span></div>
+              <h3 id="project-slide-title-2">智愿通</h3>
+              <p class="project-sub">高考志愿填报智能体</p>
+              <p class="project-intro">将招生信息变成可追溯的问答系统。检索、事实校验和评测一起约束每个分数、位次与建议。</p>
+              <ul class="project-points"><li>向量与关键词双路召回后用 RRF 融合，领域词典随结构化数据更新。</li><li>状态机串联抽取、校验、SQL 和事实保护；自建评测集防止误拒答和过期报告。</li></ul>
+              <div class="project-slide-actions"><button class="btn btn-outline btn--secondary" type="button" data-open="p-zhiyuan">查看项目详情 <span aria-hidden="true">→</span></button></div>
+            </div>
+            <aside class="project-slide-aside"><span class="slide-aside-kicker">RAG QUALITY</span><strong>混合检索与事实校验</strong><div class="slide-flow"><span>双路召回</span><i>→</i><span>RRF 融合</span><i>→</i><span>事实保护</span></div><p>结构化校验与回归评测共同约束回答；35 题评测中误拒答从 19 降至 0。</p></aside>
+          </article>
+
+          <div class="project-dots" role="tablist" aria-label="项目页码"><button class="project-dot is-active" type="button" role="tab" aria-selected="true" aria-label="第 1 个项目" data-project-index="0"></button><button class="project-dot" type="button" role="tab" aria-selected="false" aria-label="第 2 个项目" data-project-index="1"></button><button class="project-dot" type="button" role="tab" aria-selected="false" aria-label="第 3 个项目" data-project-index="2"></button></div>
+          <p class="sr-only" data-project-live aria-live="polite">当前项目：DevFleet</p>
+        </div>
       </div>
     </div>
   </section>
@@ -508,7 +447,7 @@
         </p>
 
         <div class="about-contact">
-          <a class="btn btn-primary btn--primary" href="mailto:2874951005@qq.com">2874951005@qq.com</a>
+          <a class="btn btn-primary btn--primary" href="about.html#contact">联系我</a>
         </div>
 
         <ul class="contact-list about-facts">
@@ -874,10 +813,10 @@
 </dialog>
 
 
-<script src="assets/app.js?v=20261111b"></script>
+<script src="assets/app.js?v=20261112b"></script>
 
 
-<script src="assets/theme.js?v=20261111a" defer></script>
+<script src="assets/theme.js?v=20261112a" defer></script>
 <script type="module" src="assets/taste/motion/motion.js"></script>
 <script type="module" src="assets/taste/moments/moments.js"></script>
 </body>

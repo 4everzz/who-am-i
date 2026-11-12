@@ -4,7 +4,7 @@
 
   var menuBtn = document.querySelector('.menu-btn');
   var nav = document.getElementById('nav');
-  var main = document.querySelector('.post-main');
+  var main = document.querySelector('main');
   var footer = document.querySelector('.site-footer');
   if (!menuBtn || !nav) return;
 
@@ -21,7 +21,8 @@
   }
 
   function focusables() {
-    return Array.prototype.slice.call(nav.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])'));
+    return Array.prototype.slice.call(nav.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])'))
+      .concat(Array.prototype.slice.call(document.querySelectorAll('.header-actions button')));
   }
 
   menuBtn.addEventListener('click', function () {

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>作品｜zmeety</title>
+<meta name="description" content="zmeety 的项目作品：把 RAG、Multi-Agent 和全栈交付做成可以验证、可以维护的系统。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css?v=20261112a">
+<link rel="stylesheet" href="assets/post.css?v=20261112a">
+<link rel="stylesheet" href="assets/section.css?v=20261112a">
+<script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('zmeety-theme')||'light')}catch(e){}</script>
+<link rel="canonical" href="https://zmeety.cn/works.html"><meta property="og:title" content="作品｜zmeety"><meta property="og:description" content="zmeety 的项目作品：把 RAG、Multi-Agent 和全栈交付做成可以验证、可以维护的系统。"><meta property="og:type" content="website"><meta property="og:image" content="https://zmeety.cn/assets/og.png"><meta name="twitter:card" content="summary_large_image"></head>
+<body><a class="skip-link" href="#main">跳到主要内容</a>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html" aria-label="返回首页"><span class="brand-mark" aria-hidden="true">Z</span><span class="brand-text">zmeety<span class="brand-sub">个人小站</span></span></a>
+    <nav class="nav" id="nav" aria-label="主导航"><a href="index.html">首页</a>
+      <a href="works.html" aria-current="page">作品</a><a href="notes.html">笔记</a><a href="skills-principles.html">技能与原则</a><a href="about.html">关于</a>
+    </nav>
+    <div class="header-actions"><button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false"><svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button><button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="切换导航菜单"><span></span><span></span></button></div>
+  </div>
+</header>
+
+<main class="section-page" id="main">
+  <div class="page-hero">
+    <div><div class="page-kicker">01 / Selected work</div><h1>把想法做成<br><span class="hl">可以交付的系统</span></h1><p class="page-lead">我关心的不只是模型能不能回答，还关心证据是否可追溯、失败能不能定位、权限是否清楚，以及上线之后能不能被另一个人接手。</p></div>
+    <aside class="page-aside"><strong>作品页怎么读</strong>每个项目都按“问题—设计—取舍—验证”的顺序展开。数字只记录已经实际做过、测过或上线过的部分。</aside>
+  </div>
+
+<section class="content-block" id="p-devfleet"><div class="block-heading"><span class="block-index">01 / Project</span><h2>DevFleet</h2></div><p class="block-intro">Multi-Agent 研发协作平台</p><div class="project-article">
+    <section class="project-section">
+      <h3>问题</h3>
+      <p>
+        研发判断一条 PR 能不能合并，要在任务、代码改动、评审意见、构建日志与本地文档之间来回跳，
+        一个 PR 常要看五六个页面。信息是散的，结论也就没法复核。
+      </p>
+      <p>
+        目标是把这些信息组织成一个可检索、可引用的证据库，让 AI 回答三个具体问题：
+        这个任务该谁做、这个改动该不该合、这次构建为什么失败。
+      </p>
+    </section>
+
+    <section class="project-section">
+      <h3>架构与职责</h3>
+      <p>首页展示跨领域问题的简化协作链路。系统还包含数据接入、证据检索与写操作治理；各部分职责如下。</p>
+      <div class="dlg-items">
+        <div class="dlg-item">
+          <h4>研发数据底座</h4>
+          <p>经 GitHub REST API 同步六类数据（任务、代码改动、评审意见、构建记录、失败日志、项目文档），
+             单 / 多仓库周报一次汇总。统计数字由代码聚合，不让模型生成。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>有出处的问答</h4>
+          <p>结构感知切片后语义 + 关键词双路召回，再 Rerank 二次排序；按 <code>repo_id</code> 隔离，
+             强制编号引用、可回溯原文。Milvus 不可用时自动降级为关键词检索，宁可答得糙也不答不出。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>多智能体编排</h4>
+          <p>分诊、审查、排障各交给一个专职 Agent；跨领域问题由 Planner 拆成带依赖的任务，
+             Orchestrator 按依赖调度，可并行的任务并行执行；Observer 校验证据缺口与结论冲突，
+             最后由 Synthesis 汇总为带引用、可逐条核对的建议。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>写操作要人点头</h4>
+          <p>评论、关任务、加标签统一转为 ActionDraft，过权限校验与人工确认才真正调用 GitHub API，
+             全程落 AuditLog；SSE 实时推送工具调用与执行进度。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>执行边界与故障处理</h4>
+          <p>单任务设 90 秒超时；上游依赖失败时跳过下游任务，避免带着残缺证据继续执行。
+             Token 预算与调用熔断约束整条链路的成本。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="project-section">
+      <h3>关键取舍</h3>
+
+      <details class="qa">
+        <summary>为什么要拆成多 Agent，一个 Agent 加工具不够吗？</summary>
+        <div class="qa-body">
+          <p>单 Agent 处理跨领域问题时，检索、审查、排障的证据会挤在同一段上下文里互相污染，
+             而且一旦答错很难判断是哪一步出的问题。拆成三个专职 Agent 后，每段上下文边界清晰、失败可归因。</p>
+          <p>代价是链路更长、失败点更多，所以配了两条硬约束：单任务 90 秒超时，依赖失败沿链路传播并跳过下游——
+             一个环节挂了不会把整条链路卡死。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>周报数字为什么不让模型算？</summary>
+        <div class="qa-body">
+          <p>让模型数数是最容易出错、又最难被发现的地方。新增多少任务、合并多少 PR、失败多少次构建，
+             这些由代码聚合后直接填进模板，模型只负责组织语言。数字和措辞的责任分开。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>向量库挂了怎么办？</summary>
+        <div class="qa-body">
+          <p>降级为关键词检索。回答质量会下降，但结论仍然带出处、仍然可核对，
+             比直接抛一个 500 更有用。降级会显式标注，不假装一切正常。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>为什么写操作一定要人工确认？</summary>
+        <div class="qa-body">
+          <p>评论、关闭 Issue、加标签会改变外部状态，而且不可撤销。所以统一先生成草稿，
+             权限校验通过后等人点确认，最后写审计日志。执行过程用 SSE 实时可见，
+             能看到调用了什么工具、进度到哪一步。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="project-section">
+      <h3>结果</h3>
+      <div class="dlg-metrics">
+        <div><b>209</b><span>项自动化测试通过</span></div>
+        <div><b>6</b><span>类研发数据统一接入</span></div>
+        <div><b>5 → 1</b><span>合并审查的核查入口</span></div>
+      </div>
+      <p class="dlg-footnote">
+        Agent、检索与结构化输出均有评测集校验；架构、开发与部署由我独立完成。
+      </p>
+    </section>
+
+    <section class="project-section">
+      <h3>技术栈</h3>
+      <ul class="chips chips-lg">
+        <li>Python</li><li>FastAPI</li><li>LangChain</li><li>LangGraph</li><li>Milvus</li>
+        <li>MCP</li><li>SSE</li><li>PostgreSQL</li><li>Next.js</li><li>Docker Compose</li>
+      </ul>
+    </section>
+  </div></section>
+<section class="content-block" id="p-menu"><div class="block-heading"><span class="block-index">02 / Project</span><h2>小家开饭啦</h2></div><p class="block-intro">家庭菜单、冰箱与 AI 饮食助手</p><div class="project-article">
+    <section class="project-section">
+      <h3>问题</h3>
+      <p>
+        家庭成员每天要在群聊里反复商量吃什么、买什么、冰箱还剩什么，信息不同步，
+        食材经常放到过期。目标是把这些集中到一处，并且让 AI 助手能按现有食材给建议。
+      </p>
+    </section>
+
+    <section class="project-section">
+      <h3>做法</h3>
+      <div class="dlg-items">
+        <div class="dlg-item">
+          <h4>多端交付</h4>
+          <p>一套 UniApp + Vue 3 代码交付 H5 / 微信小程序 / App，统一请求层处理令牌与跨端差异；
+             管理后台是独立的 Vue 3 工程。H5 与小程序已上线，App 已打包、待上架。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>后端与数据完整性</h4>
+          <p>FastAPI + SQLAlchemy 2 异步栈，JWT 鉴权与家庭级数据隔离；
+             并发加入家庭的上限竞态用 <code>SELECT … FOR UPDATE</code> 行锁收敛，
+             成员唯一约束保证邀请码加入幂等；Alembic 管理 33 条迁移，库存增减包在事务里。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>手写 ReAct 与 MCP</h4>
+          <p>不依赖 LangChain，手写 ReAct 循环：5 个只读工具、最多 4 步强制收口，
+             写入一律由用户确认后走业务接口。经 MCP 接入《中国食物成分表》，按来源标注可信度。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>平台治理与成本</h4>
+          <p>管理后台做内容审核、通知去重、审计留痕与三级角色逐接口校验；
+             Redis Lua 原子计数限每人每日 50 次 AI 调用；对话历史按 6 轮 / 300 字符 / 工具 50 条裁剪；
+             SSE 断连即取消后台任务。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="project-section">
+      <h3>关键取舍</h3>
+
+      <details class="qa">
+        <summary>为什么手写 ReAct，不用现成框架？</summary>
+        <div class="qa-body">
+          <p>这个场景只需要 5 个只读工具、最多 4 步，引入一套 Agent 框架的抽象成本高于收益。
+             手写能精确控制停止条件——步数满了怎么收、工具报错怎么退、什么时候必须把决定权交回用户。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>两个人同时用邀请码加入，会不会超员？</summary>
+        <div class="qa-body">
+          <p>会。计数和写入如果分两步查再做，中间就有竞态窗口。
+             所以加入家庭时用 <code>SELECT … FOR UPDATE</code> 锁住家庭行再计数，
+             配合成员唯一约束，重复提交也不会产生第二条成员记录。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>为什么只给 AI 只读工具？</summary>
+        <div class="qa-body">
+          <p>模型可以建议「把这袋食材标记为用完」，但不能自己改库存。
+             写操作全部回到业务接口、由用户点确认，AI 只负责查和提议。
+             这样即使模型判断错了，也不会留下不可撤销的脏数据。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>限流为什么用 Redis Lua？</summary>
+        <div class="qa-body">
+          <p>「读计数 → 判断 → 写回」三步如果分开执行，并发请求会同时通过。
+             Lua 脚本在 Redis 里原子执行，计数与判定不会被打断，配额才是真的 50 次。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="project-section">
+      <h3>结果</h3>
+      <div class="dlg-metrics">
+        <div><b>50+</b><span>核心用户（按实际使用人数）</span></div>
+        <div><b>59.6 → 6.0s</b><span>MCP 首次调用</span></div>
+        <div><b>381 + 12</b><span>后端 / 管理后台测试</span></div>
+      </div>
+      <p class="dlg-footnote">
+        已上线：<a href="https://menu.zmeety.cn" target="_blank" rel="noopener">menu.zmeety.cn</a>（H5 与微信小程序）。
+        家庭成员常共用一个账号，用户数按实际使用人数统计。
+      </p>
+    </section>
+
+    <section class="project-section">
+      <h3>技术栈</h3>
+      <ul class="chips chips-lg">
+        <li>UniApp</li><li>Vue 3</li><li>TypeScript</li><li>FastAPI</li><li>SQLAlchemy 2</li>
+        <li>PostgreSQL</li><li>Redis</li><li>MCP</li><li>Docker Compose</li><li>Nginx</li>
+      </ul>
+    </section>
+  </div></section>
+<section class="content-block" id="p-zhiyuan"><div class="block-heading"><span class="block-index">03 / Project</span><h2>智愿通</h2></div><p class="block-intro">高考志愿填报智能体 · 检索与问答质量工程</p><div class="project-article">
+    <section class="project-section">
+      <h3>问题</h3>
+      <p>
+        高考志愿填报高峰期，学生与家长反复查询「这个分数能上什么学校」「这个专业有什么要求」，
+        招生老师每天重复回答。信息散落在各省考试院官网、高校招生网与 PDF 章程里，人工比对耗时且易错。
+      </p>
+      <p>
+        结构化语料含 13 省 65 万余行招生与分数位次，另有院校档案。
+        难点不是「能回答」，而是答案里的每个数字都能回溯出处，并且不该拒答的不拒答。
+      </p>
+    </section>
+
+    <section class="project-section">
+      <h3>做法</h3>
+      <div class="dlg-items">
+        <div class="dlg-item">
+          <h4>检索</h4>
+          <p>pgvector 向量召回 + tsvector 关键词召回双路并行，用 RRF 融合排序；
+             jieba 的领域词典从结构化库动态读取约 2,000 个高校名与 1,200 个专业名，
+             数据更新后自动跟随，「郑轻」「河大」这类简称不再漏检。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>可信与引用</h4>
+          <p>回答强制带编号引用，并做代码级校验；自建句级断言的忠实度评测，
+             报告带指纹防过期、逐题落盘可断点续跑。编造内容直接判不合格。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>事实保护</h4>
+          <p>LangGraph 状态机串联「抽取 → 校验 → 参数化 SQL → 冲稳保打标 → 事实校验」，
+             模型改写过的分数、位次一律打回重来。条件缺失时引导补全，而不是猜。</p>
+        </div>
+        <div class="dlg-item">
+          <h4>评测与数据质量</h4>
+          <p>100 题评测集（39 基础 + 61 口语化难题）；147 条规则的数据质量引擎扫描 213,283 行，
+             定位 17 条失败规则，其中 8 条会直接导致答错。测试从 0 建到 1,416 条。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="project-section">
+      <h3>关键取舍</h3>
+
+      <details class="qa">
+        <summary>为什么最后把 Rerank 关掉了？</summary>
+        <div class="qa-body">
+          <p>39 题四档消融里，从 wide 到 rerank 首位命中率提升不到 0.1 个百分点，延迟却增加
+             P50 +405ms / P95 +625ms。收益很小、成本是确定的，所以保留能力、默认关闭，
+             并把这个结论写进配置注释，避免以后有人再「顺手加上」。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>「19/35 → 0/35」到底是什么指标？</summary>
+        <div class="qa-body">
+          <p>是域门控的误拒答率，不是事实错误率。也就是 35 道本该能回答的问题里，
+             有 19 道被错误地拒绝了，修完之后是 0 道。</p>
+          <p>把它说成「事实错误」是错的——忠实度是断言级指标，没有这个分母。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>忠实度第三次为什么从 0.95 掉到 0.92？</summary>
+        <div class="qa-body">
+          <p>因为主动收紧了高风险断言的门控：宁可判得更严，也不放过可能改写分数位次的回答。
+             用 2.7 个点的忠实度换更硬的事实约束，这个交换是有意做的，不是回退。</p>
+        </div>
+      </details>
+
+      <details class="qa">
+        <summary>为什么一定要强制引用？</summary>
+        <div class="qa-body">
+          <p>志愿填报答错的代价太高。没有出处的回答无法核对，也无法在出问题时定位是数据错、检索错还是生成错。
+             强制引用把「信不信」变成「查不查得到」。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="project-section">
+      <h3>结果</h3>
+      <div class="dlg-metrics">
+        <div><b>22.3 → 7.0s</b><span>提问到出字（-69%）</span></div>
+        <div><b>19 → 0</b><span>误拒答（35 题中）</span></div>
+        <div><b>+2.56 / +2.13</b><span>首位命中率 / 排序质量（pt）</span></div>
+        <div><b>0.86 → 0.95 → 0.92</b><span>忠实度（末次主动收紧）</span></div>
+        <div><b>1,416</b><span>自动化测试</span></div>
+        <div><b>147</b><span>数据质量规则</span></div>
+      </div>
+      <p class="dlg-footnote">
+        内部验收版本，未做公网部署。指标均为本地评测实测。
+      </p>
+    </section>
+
+    <section class="project-section">
+      <h3>技术栈</h3>
+      <ul class="chips chips-lg">
+        <li>Python</li><li>FastAPI</li><li>LangGraph</li><li>PostgreSQL</li><li>pgvector</li>
+        <li>tsvector</li><li>RRF</li><li>jieba</li><li>SSE</li><li>pytest</li>
+      </ul>
+    </section>
+  </div></section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© <span id="year">2026</span> zmeety.cn</p>
+    <p class="footer-note">
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a>
+    </p>
+  </div>
+</footer>
+<script src="assets/theme.js?v=20261112a"></script><script src="assets/post.js?v=20261112a"></script>
+</body>
+</html>

@@ -65,10 +65,10 @@ body { --post-header-height: 80px; --paper-light: #fffdf0a6; --paper-rule: #8765
   .nav { display: none; position: fixed; inset: var(--post-header-height) 0 0; width: 100%; height: calc(100dvh - var(--post-header-height)); padding: 32px 24px; margin: 0; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 0; background: var(--bg); border: 0; border-radius: 0; box-shadow: none; z-index: 50; overflow: auto; }
   body.nav-open { overflow: hidden; }
   body.nav-open .nav { display: flex; }
-  .nav a { min-height: 68px; padding: 8px 0; font-family: var(--serif); font-size: 30px; border-bottom: 1px solid var(--line); }
+  .nav a { min-height: 60px; padding: 6px 0; font-family: var(--serif); font-size: 25px; border-bottom: 1px solid var(--line); }
   .nav a::after { display: none; }
-  .post-body { font-size: 17px; line-height: 1.85; }
-  .post-body .lead { font-size: 18px; }
-  .post-body pre { font-size: 14px; }
-  .post-body table { font-size: 15px; }
+  .post-body { font-size: 16px; line-height: 1.85; }
+  .post-body .lead { font-size: 17px; }
+  .post-body pre { font-size: 13px; }
+  .post-body table { font-size: 14px; }
 }

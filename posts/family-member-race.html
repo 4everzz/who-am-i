@@ -7,7 +7,7 @@
 <meta name="description" content="先查人数再插入，在并发下必然超限。行锁把「检查 + 写入」变成一个原子动作，代价是锁的持有时间要短。">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/styles.css?v=20261110n">
-<link rel="stylesheet" href="../assets/post.css?v=20261111c">
+<link rel="stylesheet" href="../assets/post.css?v=20261112a">
 <script>try{var t=localStorage.getItem('zmeety-theme')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
@@ -21,12 +21,11 @@
         <span class="brand-sub">个人小站</span>
       </span>
     </a>
-    <nav class="nav" id="nav" aria-label="主导航">
-      <a href="../index.html#work">作品</a>
-      <a href="../index.html#notes">笔记</a>
-      <a href="../index.html#stack">技能</a>
-      <a href="../index.html#principles">原则</a>
-      <a href="../index.html#about">关于</a>
+    <nav class="nav" id="nav" aria-label="主导航"><a href="../index.html">首页</a>
+      <a href="../works.html">作品</a>
+      <a href="../notes.html">笔记</a>
+      <a href="../skills-principles.html">技能与原则</a>
+      <a href="../about.html">关于</a>
     </nav>
 
     <div class="header-actions">
@@ -43,7 +42,7 @@
 
 <main class="post-main">
   <article class="post">
-    <a class="post-back" href="../index.html#notes">← 返回笔记</a>
+    <a class="post-back" href="../notes.html">← 返回笔记</a>
     <div class="post-kicker">并发 / 数据库</div>
     <h1>六个人同时点加入，家庭成员上限失效了</h1>
     <p class="post-meta">2026-10-27 · 项目二 · 小家开饭啦</p>
@@ -82,7 +81,7 @@
         <span class="post-related-label">相关项目</span>
         <a href="../index.html#p-menu">小家开饭啦 · 家庭饮食管理与 AI 助手 <span aria-hidden="true">→</span></a>
       </div>
-      <a class="btn btn-outline" href="../index.html#notes">← 全部笔记</a>
+      <a class="btn btn-outline" href="../notes.html">← 全部笔记</a>
     </div>
   </article>
 </main>
@@ -95,7 +94,7 @@
 </footer>
 
 
-<script src="../assets/post.js?v=20261111b" defer></script>
-<script src="../assets/theme.js?v=20261111a" defer></script>
+<script src="../assets/post.js?v=20261112a" defer></script>
+<script src="../assets/theme.js?v=20261112a" defer></script>
 </body>
 </html>

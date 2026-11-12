@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>笔记｜zmeety</title><meta name="description" content="关于 RAG、Agent、评测和全栈工程实践的技术笔记。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css?v=20261112a"><link rel="stylesheet" href="assets/post.css?v=20261112a"><link rel="stylesheet" href="assets/section.css?v=20261112a">
+<script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('zmeety-theme')||'light')}catch(e){}</script>
+<link rel="canonical" href="https://zmeety.cn/notes.html"><meta property="og:title" content="笔记｜zmeety"><meta property="og:description" content="关于 RAG、Agent、评测和全栈工程实践的技术笔记。"><meta property="og:type" content="website"><meta property="og:image" content="https://zmeety.cn/assets/og.png"><meta name="twitter:card" content="summary_large_image"></head>
+<body><a class="skip-link" href="#main">跳到主要内容</a><header class="site-header"><div class="wrap header-inner"><a class="brand" href="index.html" aria-label="返回首页"><span class="brand-mark">Z</span><span class="brand-text">zmeety<span class="brand-sub">个人小站</span></span></a><nav class="nav" id="nav" aria-label="主导航"><a href="index.html">首页</a><a href="works.html">作品</a><a href="notes.html" aria-current="page">笔记</a><a href="skills-principles.html">技能与原则</a><a href="about.html">关于</a></nav><div class="header-actions"><button class="theme-toggle" type="button" aria-label="切换阅读模式" aria-pressed="false"><svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button><button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="切换导航菜单"><span></span><span></span></button></div></div></header>
+<main class="section-page" id="main"><div class="page-hero"><div><div class="page-kicker">02 / Notes</div><h1>把踩过的坑<br><span class="hl">写成可复用的判断</span></h1><p class="page-lead">这些文章来自项目中的真实问题：检索为什么失效、Agent 为什么停不下来、评测为什么不可信，以及系统上线后如何面对重连、并发和权限。</p></div><aside class="page-aside"><strong>阅读方式</strong>文章不会把结论包装成万能方法。每篇都尽量保留问题背景、失败路径、验证方法和最终取舍，方便从具体场景迁移到自己的项目。</aside></div>
+<section class="content-block"><div class="block-heading"><span class="block-index">14 essays / continuously updated</span><h2>文章目录</h2></div><p class="block-intro">可以从检索、Agent、评测和工程实践四个方向开始。每篇文章都保留了独立页面，适合直接分享给正在处理相似问题的人。</p><div class="note-catalog">
+<a class="note-card" href="posts/why-vector-not-enough.html"><span class="note-type">检索 / RAG</span><h3>为什么纯向量检索不够用：BM25 + RRF 混合检索实践</h3><p>从纯向量检索的两个短板出发，讲清 BM25 关键词检索、RRF 倒数排名融合，以及中文场景下 jieba 预分词的必要性。附 39 题消融实测数据。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/hitl-three-bugs.html"><span class="note-type">测试 / 排障</span><h3>38 个单测全绿，功能一次都没触发过</h3><p>HITL 人工决策功能 38 个单测全绿、全量 977 passed，但真实链路上一次都没触发。三个 bug 叠成一条死链，记录排查过程与三条判据。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/dimension-mismatch.html"><span class="note-type">排障 / 工程习惯</span><h3>同一个错犯了五次：阈值与判据的量纲必须匹配</h3><p>为场景 A 推出的阈值拿去判场景 B，后果是该触发的永不触发、不该触发的每次都触发。记录五次量纲错配事故与一条动手前的自查问题。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/eval-integrity.html"><span class="note-type">评测 / 可信度</span><h3>评测工具比业务代码更危险：一次让历史分数全部作废的排查</h3><p>业务错了用户能看见，度量错了所有人都看不见。记录 RAG 评测中三个静默缺陷：取错产物、repr 污染上下文、指纹漏掉被测代码。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/bounded-react-agent.html"><span class="note-type">AI / Agent</span><h3>手写一个有限的 ReAct Agent：为什么不用框架，以及边界怎么划</h3><p>单 Agent、有限工具、短上下文场景下，手写 ReAct 循环比引入框架更可控。记录工具权限、输出契约、SSE 生命周期与降级设计。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/multi-agent-boundary.html"><span class="note-type">多智能体 / 编排</span><h3>多 Agent 不是越多越好：拆分的边界在哪</h3><p>从一个 Agent 同时处理分诊、审查、排障时的上下文污染讲起，说明多智能体拆分的判据不是任务数量，而是上下文能否隔离、失败能否归因，以及为「拆」付出的三条工程代价。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/why-not-ragas.html"><span class="note-type">评测 / 依赖</span><h3>为什么我不用 RAGAS：一次依赖降级的取舍</h3><p>评测框架能省很多事，但要看它把你的依赖树拽到哪。记录一次 ragas 与 langchain-openai 的版本冲突，以及为什么最后选择自实现句级断言评测。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/mcp-cold-start.html"><span class="note-type">性能 / MCP</span><h3>MCP 首次调用 59.6 秒：三个瓶颈叠在一起</h3><p>冷启动第一次调 MCP 工具要等将近一分钟，第二次只要 6 秒。差的这 53 秒拆开看，是三件事各自付了一次性成本。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/false-refusal-zero.html"><span class="note-type">评测 / 质量</span><h3>19 个误拒答，是怎么一个个归零的</h3><p>不是调一个阈值就完事。19 条错例逐条归类，五类原因对应五种修法，改完还要确认没有把误答换进来。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/agent-stop-conditions.html"><span class="note-type">AI / 工程规范</span><h3>Agent 循环没有停止条件，就是在等事故</h3><p>max_steps、token 预算、墙钟上限、人工接管点——四道闸缺一道，跑飞只是时间问题。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/sse-reconnect.html"><span class="note-type">流式 / 前端</span><h3>SSE 断线之后，前端为什么收到半句话</h3><p>重连没有事件 ID 和游标，服务端从头推，前端把两段拼成一句——看起来像模型说胡话，实际是传输层的问题。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/family-member-race.html"><span class="note-type">并发 / 数据库</span><h3>六个人同时点加入，家庭成员上限失效了</h3><p>先查人数再插入，在并发下必然超限。行锁把「检查 + 写入」变成一个原子动作，代价是锁的持有时间要短。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/prompt-as-code.html"><span class="note-type">工程化 / Prompt</span><h3>Prompt 改了没人知道，比改错更麻烦</h3><p>提示词散落在代码字符串里，改了什么、什么时候改的、评测分数对应哪一版，全都说不清。</p><span class="note-link">阅读文章 →</span></a>
+<a class="note-card" href="posts/canary-metrics.html"><span class="note-type">发布 / 可观测</span><h3>灰度只放 5% 流量，该看哪三个指标</h3><p>成功率看稳定性、P95 看体验、拒答率看质量。前两个发现故障，第三个发现退化，缺一个都可能把问题放到全量。</p><span class="note-link">阅读文章 →</span></a>
+</div></section></main>
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© <span id="year">2026</span> zmeety.cn</p>
+    <p class="footer-note">
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2026035370号-2</a>
+    </p>
+  </div>
+</footer><script src="assets/theme.js?v=20261112a"></script><script src="assets/post.js?v=20261112a"></script>
+</body></html>

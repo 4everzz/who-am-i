@@ -32,7 +32,10 @@
   var bar = document.getElementById('progressBar');
   var header = document.querySelector('.site-header');
   var links = Array.from(document.querySelectorAll('.nav a'));
-  var sections = links.map(function (link) { return document.querySelector(link.getAttribute('href')); }).filter(Boolean);
+  var sections = links.map(function (link) {
+    var href = link.getAttribute('href');
+    return href && href.charAt(0) === '#' ? document.getElementById(href.slice(1)) : null;
+  }).filter(Boolean);
   var pending = false;
   function updateScroll() {
     pending = false;
@@ -258,6 +261,104 @@
     sizeNotesList();
     window.addEventListener('resize', sizeNotesList);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeNotesList);
+  }
+  var projectCarousel = document.querySelector('[data-project-carousel]');
+  if (projectCarousel) {
+    var projectSlides = Array.from(projectCarousel.querySelectorAll('[data-project-slide]'));
+    var projectTabs = Array.from(projectCarousel.querySelectorAll('[data-project-index]'));
+    var projectCounter = projectCarousel.querySelector('[data-project-counter]');
+    var projectLive = projectCarousel.querySelector('[data-project-live]');
+    var projectStage = projectCarousel.querySelector('.project-stage');
+    var compass = projectCarousel.querySelector('.project-compass');
+    var compassNumber = projectCarousel.querySelector('[data-compass-number]');
+    var compassName = projectCarousel.querySelector('[data-compass-name]');
+    var projectReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var projectIndex = 0;
+    var projectRotation = 0;
+    var projectTimer = 0;
+    var projectAuto = !projectReduced.matches;
+    var projectTouchX = null;
+    var projectDelay = 3000;
+
+    function projectSyncTimer() {
+      window.clearTimeout(projectTimer);
+      projectTimer = 0;
+      if (projectAuto && !projectReduced.matches && !document.hidden) {
+        projectTimer = window.setTimeout(function () {
+          projectShow(projectIndex + 1, false);
+        }, projectDelay);
+      }
+    }
+    function projectSetAuto(enabled) {
+      projectAuto = enabled && !projectReduced.matches;
+      projectSyncTimer();
+    }
+    function projectShow(nextIndex, announce) {
+      var targetIndex = (nextIndex + projectSlides.length) % projectSlides.length;
+      var step = targetIndex - projectIndex;
+      if (step > projectSlides.length / 2) step -= projectSlides.length;
+      if (step < -projectSlides.length / 2) step += projectSlides.length;
+      projectRotation -= step * (360 / projectSlides.length);
+      projectIndex = targetIndex;
+      projectSlides.forEach(function (slide, index) {
+        var active = index === projectIndex;
+        slide.hidden = !active;
+        slide.classList.toggle('is-active', active);
+      });
+      projectTabs.forEach(function (tab) {
+        var active = Number(tab.dataset.projectIndex) === projectIndex;
+        tab.classList.toggle('is-active', active);
+        if (tab.classList.contains('project-tab')) {
+          if (active) tab.setAttribute('aria-current', 'true');
+          else tab.removeAttribute('aria-current');
+        } else if (tab.classList.contains('compass-notch')) {
+          tab.setAttribute('aria-pressed', String(active));
+        } else {
+          tab.setAttribute('aria-selected', String(active));
+        }
+      });
+      if (projectCounter) projectCounter.textContent = String(projectIndex + 1).padStart(2, '0') + ' / ' + String(projectSlides.length).padStart(2, '0');
+      if (compass) {
+        compass.style.setProperty('--compass-angle', projectRotation + 'deg');
+        compass.style.setProperty('--compass-return', -projectRotation + 'deg');
+      }
+      if (compassNumber) compassNumber.textContent = String(projectIndex + 1).padStart(2, '0');
+      if (compassName) {
+        var compassTitle = projectSlides[projectIndex].querySelector('h3');
+        compassName.textContent = compassTitle ? compassTitle.textContent : '';
+      }
+      if (projectLive && announce) {
+        var title = projectSlides[projectIndex].querySelector('h3');
+        projectLive.textContent = '当前项目：' + (title ? title.textContent : String(projectIndex + 1));
+      }
+      projectSyncTimer();
+    }
+    projectTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () { projectShow(Number(tab.dataset.projectIndex), true); });
+    });
+    projectCarousel.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowLeft') { event.preventDefault(); projectShow(projectIndex - 1, true); }
+      if (event.key === 'ArrowRight') { event.preventDefault(); projectShow(projectIndex + 1, true); }
+    });
+    if (projectStage) {
+      projectStage.addEventListener('pointerdown', function (event) {
+        if (event.pointerType === 'touch') projectTouchX = event.clientX;
+      }, { passive: true });
+      projectStage.addEventListener('pointerup', function (event) {
+        if (projectTouchX === null || event.pointerType !== 'touch') return;
+        var distance = event.clientX - projectTouchX;
+        projectTouchX = null;
+        if (Math.abs(distance) > 44) projectShow(projectIndex + (distance < 0 ? 1 : -1), true);
+      }, { passive: true });
+      projectStage.addEventListener('pointercancel', function () { projectTouchX = null; }, { passive: true });
+    }
+    document.addEventListener('visibilitychange', projectSyncTimer);
+    projectReduced.addEventListener('change', function () {
+      if (projectReduced.matches) projectSetAuto(false);
+      else projectSetAuto(true);
+    });
+    projectSetAuto(projectAuto);
+    projectShow(0, false);
   }
   var year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());
