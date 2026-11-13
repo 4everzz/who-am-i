@@ -1,0 +1,22 @@
+{
+  "name": "who-am-i-vue-pilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare:site": "node scripts/prepare-site.mjs",
+    "predev": "npm run prepare:site",
+    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "typecheck": "npm run prepare:site && vue-tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+  },
+  "dependencies": { "vue": "3.5.45" },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.11",
+    "vite": "8.3.8",
+    "typescript": "~5.9.3",
+    "vue-tsc": "3.3.14"
+  }
+}

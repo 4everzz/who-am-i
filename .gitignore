@@ -4,6 +4,7 @@ desktop.ini
 *.log
 _shots/
 .taste-skill/
+.playwright-mcp/
 node_modules/
 .local/
 .venv*/
@@ -14,3 +15,7 @@ __pycache__/
 .pytest_cache/
 *.sqlite
 *.sqlite-*
+frontend/dist/
+frontend/.legacy-public/
+frontend/index.html
+frontend/src/generated/

@@ -1,5 +1,10 @@
 # zmeety.cn
 
+> 当前发布入口：`frontend/`（Vue 3 + TypeScript + Vite）。首页项目罗盘与详情弹窗已迁入 Vue，
+> 其余页面在构建时从根目录复制。运行 `cd frontend`、`npm ci`、`npm run build`，
+> **只发布 `frontend/dist/`**。直接上传根目录会把首页恢复成旧静态版本。
+> 本地 Vue 预览与迁移边界见 [frontend/README.md](frontend/README.md)。下文原静态站说明保留作基线参考。
+
 技术笔记与作品站。纯静态：无框架、无构建步骤、无外部字体/CDN、无统计脚本。
 
 站点不收录个人信息（姓名、学校、单位、联系方式、社交账号），只放项目与技术内容。
@@ -97,8 +102,14 @@ Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub" | ssh root@47.114.62.82 "mkdi
 # 1. 服务器先备份
 ssh root@47.114.62.82 "tar -czf /root/backups/zmeety-$(date +%Y%m%d-%H%M).tgz -C /var/www/zmeety ."
 
-# 2. 本地打包（排除 .git 与本地审查产物）
-tar -czf site.tgz --exclude=.git --exclude=.taste-skill -C website .
+# 2. 在仓库根目录构建并只打包公开产物
+Push-Location frontend
+npm ci
+if ($LASTEXITCODE -ne 0) { Pop-Location; throw "依赖安装失败" }
+npm run build
+if ($LASTEXITCODE -ne 0) { Pop-Location; throw "构建失败" }
+Pop-Location
+tar -czf site.tgz -C frontend/dist .
 
 # 3. 上传并解包覆盖
 scp site.tgz root@47.114.62.82:/tmp/zmeety-site.tgz
