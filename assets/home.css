@@ -1,4 +1,7 @@
 /* Homepage only. The shared stylesheet continues to serve the article pages. */
+/* Vue replaces this readable fallback only after its bundle has loaded. */
+.home-page .work-fallback .project-slide { display: grid; margin-bottom: 32px; padding: 24px; border: 1px solid var(--line); }
+.home-page .work-fallback { height: auto; }
 html:has(.home-page) { scroll-behavior: auto; scroll-padding-top: 0; }
 .home-page {
   --bg: #f5e8c9;

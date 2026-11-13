@@ -39,7 +39,7 @@ async function onKey(event: KeyboardEvent) {
   const control = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-project-index]');
   if (!control || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
   event.preventDefault();
-  const index = Number(control.dataset.projectIndex);
+  const index = state.value.index;
   select(event.key === 'Home' ? 0 : event.key === 'End' ? projects.length - 1 : index + (event.key === 'ArrowRight' ? 1 : -1));
   await nextTick();
   const group = control.classList.contains('project-dot') ? '.project-dot' : '.compass-notch';
@@ -57,21 +57,16 @@ function keyboardInput(event: KeyboardEvent) {
   keyboardInteraction = true;
   syncFocus();
 }
-function pointerInput() { keyboardInteraction = false; carousel.resume('focus'); }
-function pointerMove(event: PointerEvent) {
-  if (event.pointerType === 'touch' || !root.value) return;
-  const target = event.target as Node | null;
-  if (!root.value.contains(target)) {
-    keyboardInteraction = false;
-    carousel.resume('focus');
-    carousel.resume('pointer');
-  }
+function pointerInput() {
+  // Only a deliberate click/tap changes input mode. Moving the mouse must
+  // not cancel an active keyboard pause; touch retains its own timed pause.
+  keyboardInteraction = false;
+  carousel.resume('focus');
 }
 function pointerEnter(event: PointerEvent) {
   if (event.pointerType === 'touch') return;
-  keyboardInteraction = false;
-  carousel.resume('focus');
   carousel.pause('pointer');
+  syncFocus();
 }
 function pointerLeave(event: PointerEvent) {
   if (event.pointerType === 'touch') return;
@@ -131,14 +126,12 @@ onMounted(() => {
   document.addEventListener('visibilitychange', visibility);
   document.addEventListener('keydown', keyboardInput, true);
   document.addEventListener('pointerdown', pointerInput, true);
-  document.addEventListener('pointermove', pointerMove, true);
   window.addEventListener('pointerup', touchEnd);
   window.addEventListener('pointercancel', touchEnd);
   cleanup.push(() => {
     document.removeEventListener('visibilitychange', visibility);
     document.removeEventListener('keydown', keyboardInput, true);
     document.removeEventListener('pointerdown', pointerInput, true);
-    document.removeEventListener('pointermove', pointerMove, true);
     window.removeEventListener('pointerup', touchEnd);
     window.removeEventListener('pointercancel', touchEnd);
   });

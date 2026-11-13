@@ -95,4 +95,11 @@
       button.disabled = false; button.removeAttribute('aria-busy');
     }
   });
+  // Enable only after the submit handler is installed; a failed bundle stays safe.
+  var guard = form.querySelector('[data-contact-guard]');
+  if (guard) guard.disabled = false;
+  form.noValidate = true;
+  form.hidden = false;
+  var unavailable = document.querySelector('[data-contact-unavailable]');
+  if (unavailable) unavailable.hidden = true;
 })();

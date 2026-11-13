@@ -49,8 +49,11 @@ async def env(tmp_path, monkeypatch):
     monkeypatch.setattr(delivery, 'AsyncSessionLocal', factory)
     monkeypatch.setattr(settings, 'contact_rate_limit_max_submissions', 3)
     monkeypatch.setattr(settings, 'contact_hourly_limit', 60)
+    monkeypatch.setattr(settings, 'contact_rate_limit_salt', 'test-contact-rate-limit-salt-at-least-32-characters')
+    monkeypatch.setattr(settings, 'contact_require_origin', True)
     monkeypatch.setattr(settings, 'contact_trusted_proxies', '')
-    client = httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://localhost')
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app=app, client=('203.0.113.10', 12345)),
+                              base_url='http://localhost', headers={'Origin': 'https://zmeety.cn'})
     yield app, client, factory
     await client.aclose()
     await engine.dispose()
@@ -129,11 +132,56 @@ async def test_spoofed_proxy_header_cannot_bypass_persistent_limit(env):
 @pytest.mark.asyncio
 async def test_global_limit(env, monkeypatch):
     _, client, _ = env
-    monkeypatch.setattr(settings, 'contact_trusted_proxies', '127.0.0.1')
+    monkeypatch.setattr(settings, 'contact_trusted_proxies', '203.0.113.10')
     monkeypatch.setattr(settings, 'contact_hourly_limit', 2)
     for i in range(2):
         assert (await client.post('/api/v1/contact-messages', headers={'X-Real-IP': f'10.1.2.{i}'}, json=payload())).status_code == 202
     assert (await client.post('/api/v1/contact-messages', headers={'X-Real-IP': '10.3.2.1'}, json=payload())).status_code == 429
+
+
+@pytest.mark.asyncio
+async def test_missing_origin_is_rejected_without_write(env):
+    _, client, factory = env
+    del client.headers['Origin']
+    assert (await client.post('/api/v1/contact-messages', json=payload())).status_code == 403
+    async with factory() as session:
+        assert await session.scalar(select(func.count()).select_from(ContactMessage)) == 0
+
+
+@pytest.mark.asyncio
+async def test_missing_contact_secret_fails_only_contact_submission(env, monkeypatch):
+    _, client, factory = env
+    monkeypatch.setattr(settings, 'contact_rate_limit_salt', '')
+    monkeypatch.setattr(settings, 'contact_notification_enabled', False)
+    async with delivery.contact_notification_lifespan():
+        response = await client.post('/api/v1/contact-messages', json=payload())
+        assert response.status_code == 503
+    async with factory() as session:
+        assert await session.scalar(select(func.count()).select_from(ContactMessage)) == 0
+
+
+@pytest.mark.asyncio
+async def test_proxy_visitors_have_independent_quotas(env, monkeypatch):
+    _, client, factory = env
+    monkeypatch.setattr(settings, 'contact_trusted_proxies', '203.0.113.10')
+    for visitor in ('203.0.113.20', '203.0.113.21'):
+        for _ in range(3):
+            assert (await client.post('/api/v1/contact-messages', headers={'X-Real-IP': visitor}, json=payload())).status_code == 202
+        assert (await client.post('/api/v1/contact-messages', headers={'X-Real-IP': visitor}, json=payload())).status_code == 429
+    async with factory() as session:
+        assert await session.scalar(select(func.count()).select_from(ContactMessage)) == 6
+
+
+@pytest.mark.asyncio
+async def test_session_with_mapper_bind_supports_submissions(env):
+    app, client, factory = env
+    bound_factory = async_sessionmaker(binds={ContactMessage: factory.kw['bind']}, expire_on_commit=False)
+    async def bound_session():
+        async with bound_factory() as session:
+            assert session.bind is None
+            yield session
+    app.dependency_overrides[get_db] = bound_session
+    assert (await client.post('/api/v1/contact-messages', json=payload())).status_code == 202
 
 
 @pytest.mark.asyncio

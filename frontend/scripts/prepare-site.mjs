@@ -1,4 +1,6 @@
 import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
+import { projectFallback } from './site-fallbacks.mjs';
+import { versionedAssetDirectory } from './versioned-assets.mjs';
 
 const root = new URL('../../', import.meta.url);
 function withVueHeader(html) {
@@ -17,6 +19,7 @@ await mkdir(target, { recursive: true });
 for (const name of ['assets', 'posts', '404.html', 'robots.txt', 'sitemap.xml']) {
   await cp(new URL(name, root), new URL(name, target), { recursive: true });
 }
+const motionAssets = await versionedAssetDirectory(new URL('assets/taste/', root), new URL('assets/', target));
 // These pages now have Vite entries; remove stale public copies from previous builds.
 for (const name of ['notes.html', 'skills-principles.html', 'works.html', 'about.html']) {
   await rm(new URL(name, target), { force: true });
@@ -32,9 +35,10 @@ if (Object.keys(details).sort().join(',') !== 'p-devfleet,p-menu,p-zhiyuan') thr
 const generated = new URL('../src/generated/', import.meta.url);
 await mkdir(generated, { recursive: true });
 await writeFile(new URL('project-details.json', generated), JSON.stringify(details, null, 2));
-const work = /(<section class="section page" id="work">)[\s\S]*?<\/section>/;
+const work = /(<section class="section page" id="work">)([\s\S]*?)(<\/section>)/;
 if (!work.test(html)) throw new Error('Homepage project section changed; review the Vue pilot adapter.');
-html = html.replace(work, '$1<noscript>请启用 JavaScript 查看项目，或前往<a href="works.html">作品页</a>。</noscript></section>');
+// Readable before Vue mounts, with JavaScript disabled, or if its bundle fails.
+html = html.replace(work, projectFallback);
 const homeNotes = /<div class="notes-list" id="notesList">[\s\S]*?<\/nav>/;
 if (!homeNotes.test(html)) throw new Error('Homepage notes pagination changed; review the Vue notes adapter.');
 html = html.replace(homeNotes, match => `<div id="home-notes-app">${match}</div>`);
@@ -47,6 +51,7 @@ const appScript = /<script src="assets\/app\.js[^\"]*"><\/script>/;
 if (!appScript.test(html)) throw new Error('Homepage script entry changed.');
 html = html.replace(appScript, '<script type="module" src="/src/main.ts"></script>');
 html = html.replaceAll('href="assets/', 'href="/assets/').replaceAll('src="assets/', 'src="/assets/');
+html = html.replaceAll('/assets/taste/', `/assets/${motionAssets}/`);
 await writeFile(new URL('../index.html', import.meta.url), html);
 
 let notesHtml = await readFile(new URL('notes.html', root), 'utf8');
@@ -79,7 +84,7 @@ worksHtml = worksHtml.replaceAll('href="assets/', 'href="/assets/').replaceAll('
 await writeFile(new URL('../works.html', import.meta.url), withVueHeader(worksHtml));
 
 let aboutHtml = await readFile(new URL('about.html', root), 'utf8');
-const contactForm = /<form class="contact-form" data-contact-form novalidate>[\s\S]*?<\/form>/;
+const contactForm = /<form\b[^>]*class="contact-form"[^>]*data-contact-form[^>]*>[\s\S]*?<\/form>/;
 const contactScript = /<script src="assets\/contact\.js[^"]*"><\/script>/;
 if (!contactForm.test(aboutHtml) || !contactScript.test(aboutHtml)) {
   throw new Error('Contact form entry changed; review the Vue contact adapter.');
@@ -104,7 +109,6 @@ legacy = legacy.slice(0, dialogStart) + `
   function openFromHash() {
     if (/^#p-(devfleet|menu|zhiyuan)$/.test(location.hash)) return;
     if (location.hash) scrollToHash(location.hash, false);
-    else moveTo(0);
   }
   window.addEventListener('hashchange', openFromHash);
   document.addEventListener('site:project-dialog-open', cancelPageScroll);

@@ -1,7 +1,10 @@
 # 联系表单后端集成
 
-个人站保持 HTML/CSS/JavaScript，新增页面调用同源 `POST /api/v1/contact-messages`。
-未来 Vue/React 只替换前端组件，不改变这个接口。后端复用服务器 `/opt/family-menu/backend`，不另起一套数据库。
+个人站 Vue 3 + TypeScript 联系组件调用同源 `POST /api/v1/contact-messages`。
+后端补丁用于复用服务器 `/opt/family-menu/backend`，不另起一套数据库。
+
+2026-11-13 只读检查：运行容器尚未包含联系接口与 SMTP 配置。仓库有补丁不等于服务已上线。
+本轮仅修补与本地测试，没有对服务器应用补丁、执行迁移或重启服务。
 
 ## 文件与集成方式
 
@@ -55,6 +58,15 @@ SMTP 接受邮件与数据库记发送成功之间若进程崩溃，可能产生
 
 数据库计数和事务锁保证多进程、重启后仍然限流：每个来源 5 分钟 3 条、全站每小时 60 条。
 只对明确配置的可信代理采信 X-Real-IP。Nginx 必须覆盖该头，并把实际 Docker 网关加入可信代理列表。
+当前检查到的 Docker 网关为 `172.18.0.1`；正式接入前重新确认，不能对所有网络使用通配信任。
+如果带 X-Real-IP 的请求来自未受信任的内部代理，接口返回 503 并记录配置错误，而不是让访客共用该网关的额度。
+受信任代理必须提供单个有效 IP；公网未受信任的调用者伪造此头不会改变其限流标识。
+Uvicorn/其他代理中间件可能先改写 request.client，接入时还须核对实际代理链和传入地址，不能只看 Docker 网关。
+
+`CONTACT_RATE_LIMIT_SALT` 必须是独立的至少 32 字符随机密钥，不回退到 JWT 密钥。
+配置不全会关闭联系提交能力并记录诊断，不能拖垮家庭菜单的其他接口。
+生产 Origin 默认只含两个正式域名，拒绝缺失 Origin 的提交。Origin 检查不是身份认证或完整反机器人手段。
+本地调试需显式加入测试 origin；`CONTACT_REQUIRE_ORIGIN=false` 仅在非生产环境用于受控测试客户端。
 源 IP 仅保存带密钥的 HMAC，不保存原值。机器人蜜罐字段和来源检查提供基础防护；当前没有第三方验证码。
 分布式垃圾提交仍可能触发全站限流，后续如出现实际滥用再接 Turnstile。
 
@@ -64,7 +76,7 @@ SMTP 接受邮件与数据库记发送成功之间若进程崩溃，可能产生
 
 ## 部署和回退
 
-静态发布必须使用明确的 HTML、assets、posts、sitemap.xml、robots.txt 文件清单，
+静态发布只能使用 `frontend/dist/` 构建产物，
 不要把整个仓库（尤其 backend、测试、环境文件）打包进 `/var/www/zmeety`。
 新增 API proxy 配置见仓库 nginx.conf.example。部署前先 `nginx -t`，通过后再 reload。
 后端构建、数据库迁移、服务重启与前端发布按同一次发布处理，并在发布后分别验收数据库记录和邮件送达。
@@ -76,3 +88,14 @@ SMTP 接受邮件与数据库记发送成功之间若进程崩溃，可能产生
 `tests/` 使用独立 SQLite 临时库验收校验、权限、持久化、幂等、限流和邮件重试。
 SQLite 测试不证明 PostgreSQL 锁语义正确，PostgreSQL 和 Alembic 需在隔离库中单独验证。
 测试 SMTP 只使用本地捕获器，不向站主邮箱发送演示邮件。
+
+不依赖完整后端的策略测试：
+
+```powershell
+python -m unittest discover -s backend/tests -p test_contact_security.py -v
+```
+
+完整接口测试需在与 family-menu 源码集成后的隔离副本运行，安装其兼容依赖和 aiosqlite。
+为副本设置 `PYTHONPATH` 后执行 `python -m pytest backend/tests/test_contact.py -q`。
+测试使用临时 SQLite 和模拟 SMTP，不读取服务器环境文件；不能用生产库运行测试。
+`install.py` 重复应用会补齐新增配置字段，并保留已设置的值；默认仍只输出变更清单。

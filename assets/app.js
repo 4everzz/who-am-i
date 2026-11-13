@@ -227,7 +227,6 @@
     var target = document.getElementById(location.hash.slice(1));
     if (target && target.classList.contains('project-dialog')) openDialog(target);
     else if (location.hash) scrollToHash(location.hash, false);
-    else moveTo(0);
   }
   window.addEventListener('hashchange', openFromHash);
   openFromHash();

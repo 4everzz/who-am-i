@@ -71,6 +71,8 @@
 .section-page .contact-form-head { display: flex; justify-content: space-between; gap: 24px; align-items: end; }
 .section-page .contact-form-head p { max-width: 38em; margin-top: 10px; font-size: 15px; }
 .section-page .contact-form { display: grid; gap: 22px; margin-top: 30px; }
+.section-page .contact-form[hidden], .section-page [data-contact-unavailable][hidden] { display: none; }
+.section-page .contact-form [data-contact-guard] { display: grid; gap: 22px; }
 .section-page .contact-form .field { display: grid; gap: 8px; }
 .section-page .contact-form label,
 .section-page .contact-form legend { color: var(--fg); font: 600 14px/1.5 var(--sans); }

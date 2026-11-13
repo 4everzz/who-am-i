@@ -4,6 +4,7 @@ Defaults to a dry run. This script never changes environment secrets, runs migra
 restarts containers or publishes web files.
 """
 import argparse
+import re
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,8 +24,10 @@ SETTINGS = '''
     contact_rate_limit_window_seconds: int = 300
     contact_rate_limit_max_submissions: int = 3
     contact_hourly_limit: int = 60
-    contact_allowed_origins: str = "https://zmeety.cn,https://www.zmeety.cn,http://127.0.0.1:8123,http://localhost:8123"
-    contact_trusted_proxies: str = "127.0.0.1,::1"
+    contact_allowed_origins: str = "https://zmeety.cn,https://www.zmeety.cn"
+    contact_require_origin: bool = True
+    # Set this to the actual reverse-proxy or Docker gateway address in production.
+    contact_trusted_proxies: str = ""
 '''
 
 
@@ -43,6 +46,20 @@ def integrate(target: Path, apply: bool = False):
                 if anchor not in original:
                     raise RuntimeError('Unknown config layout; inspect app/core/config.py before applying')
                 updated = original.replace(anchor, anchor + '\n' + SETTINGS, 1)
+            else:
+                # Re-applying an updated overlay must add new fields without replacing
+                # existing settings or any deployment secrets.
+                fields = re.findall(r'^    (contact_\w+|smtp_\w+):[^\n]+', SETTINGS, re.MULTILINE)
+                additions = []
+                for field in fields:
+                    if not re.search(r'^    ' + field + r'\s*:', updated, re.MULTILINE):
+                        additions.append(re.search(r'^    ' + field + r':[^\n]+', SETTINGS, re.MULTILINE).group())
+                if additions:
+                    updated = re.sub(r'(^    contact_notification_enabled:[^\n]+)',
+                                     lambda match: match[1] + '\n' + '\n'.join(additions), updated, count=1, flags=re.MULTILINE)
+                updated = updated.replace(
+                    'contact_allowed_origins: str = "https://zmeety.cn,https://www.zmeety.cn,http://127.0.0.1:8123,http://localhost:8123"',
+                    'contact_allowed_origins: str = "https://zmeety.cn,https://www.zmeety.cn"')
         elif name == 'app/models/__init__.py':
             if 'from app.models.contact_message import ContactMessage' not in original:
                 updated += '\nfrom app.models.contact_message import ContactMessage\n'

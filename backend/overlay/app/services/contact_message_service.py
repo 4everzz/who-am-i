@@ -11,10 +11,20 @@ from email.message import EmailMessage
 from sqlalchemy import select
 
 from app.core.config import settings
+from app.core.contact_security import ContactConfigurationError, check_origins, check_salt, trusted_proxy_addresses
 from app.core.database import AsyncSessionLocal
 from app.models.contact_message import ContactMessage
 
 logger = logging.getLogger(__name__)
+
+
+def validate_contact_configuration() -> None:
+    check_salt(settings.contact_rate_limit_salt, settings.jwt_secret)
+    production = str(getattr(settings, 'app_env', 'production')).lower() in {'prod', 'production'}
+    check_origins(settings.contact_allowed_origins, production=production)
+    trusted_proxy_addresses(settings.contact_trusted_proxies)
+    if production and not getattr(settings, 'contact_require_origin', True):
+        raise ContactConfigurationError('Production contact submissions require an Origin header')
 
 
 def _send_email_sync(message) -> None:
@@ -80,6 +90,11 @@ async def _worker():
 
 @asynccontextmanager
 async def contact_notification_lifespan():
+    try:
+        validate_contact_configuration()
+    except ContactConfigurationError as error:
+        # This feature shares a backend with family-menu. Do not take it offline.
+        logger.error('Contact configuration: %s', error)
     task = None
     if settings.contact_notification_enabled:
         required = (settings.smtp_host, settings.smtp_username, settings.smtp_password, settings.contact_notification_to)

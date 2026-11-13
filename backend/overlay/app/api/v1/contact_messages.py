@@ -1,7 +1,6 @@
 """Public submissions and owner-only message access; no visitor information is returned publicly."""
 
-import hashlib
-import hmac
+import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -9,6 +8,7 @@ from sqlalchemy import func, select, text
 
 from app.api.deps import DbSession, PlatformSuperAdmin
 from app.core.config import settings
+from app.core.contact_security import ContactConfigurationError, check_origins, contact_source_hash
 from app.core.response import success
 from app.models.contact_message import CONTACT_READ, ContactMessage
 from app.schemas.contact_message import ContactMessageCreateRequest, ContactMessageListItem
@@ -18,25 +18,35 @@ router = APIRouter(tags=["个人站联系"])
 
 def source_hash(request: Request) -> str:
     host = request.client.host if request.client else "unknown"
-    trusted = {item.strip() for item in settings.contact_trusted_proxies.split(',') if item.strip()}
-    if host in trusted:
-        host = request.headers.get('x-real-ip', host)
-    return hmac.new(
-        (settings.contact_rate_limit_salt or settings.jwt_secret).encode(),
-        host.encode(), hashlib.sha256,
-    ).hexdigest()
+    production = str(getattr(settings, 'app_env', 'production')).lower() in {'prod', 'production'}
+    try:
+        return contact_source_hash(host, request.headers.get('x-real-ip', ''),
+                                   settings.contact_trusted_proxies, settings.contact_rate_limit_salt,
+                                   settings.jwt_secret, require_proxy=production)
+    except ContactConfigurationError as error:
+        logging.getLogger(__name__).error('Contact configuration: %s', error)
+        raise HTTPException(503, '联系服务暂不可用，请通过页面邮箱联系') from error
 
 
 @router.post('/contact-messages', status_code=202, summary='提交联系消息')
 async def create_contact_message(payload: ContactMessageCreateRequest, request: Request, session: DbSession) -> dict:
     origin = request.headers.get('origin')
+    production = str(getattr(settings, 'app_env', 'production')).lower() in {'prod', 'production'}
+    try:
+        check_origins(settings.contact_allowed_origins, production=production)
+    except ContactConfigurationError as error:
+        logging.getLogger(__name__).error('Contact configuration: %s', error)
+        raise HTTPException(503, '联系服务暂不可用，请通过页面邮箱联系') from error
     allowed = {item.strip().rstrip('/') for item in settings.contact_allowed_origins.split(',') if item.strip()}
+    if not origin and (production or getattr(settings, 'contact_require_origin', True)):
+        raise HTTPException(403, '请从本站提交表单')
     if origin and origin.rstrip('/') not in allowed:
         raise HTTPException(403, '请从本站提交表单')
     if payload.website:
         return success({'id': str(payload.request_id)}, message='消息已收到')
     # Database counts and a short lock survive restarts and work across all app processes.
-    if session.bind.dialect.name == 'postgresql':
+    hashed = source_hash(request)
+    if session.get_bind(mapper=ContactMessage).dialect.name == 'postgresql':
         await session.execute(text('SELECT pg_advisory_xact_lock(20261111, 1)'))
     request_id = str(payload.request_id)
     existing = await session.scalar(select(ContactMessage).where(ContactMessage.request_id == request_id))
@@ -45,7 +55,6 @@ async def create_contact_message(payload: ContactMessageCreateRequest, request: 
             raise HTTPException(409, '请重新提交这条消息')
         return success({'id': request_id}, message='消息已收到')
     now = datetime.now(timezone.utc)
-    hashed = source_hash(request)
     recent = select(func.count()).select_from(ContactMessage).where(
         ContactMessage.created_at >= now - timedelta(seconds=settings.contact_rate_limit_window_seconds),
         ContactMessage.source_hash == hashed,

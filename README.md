@@ -1,63 +1,57 @@
 # zmeety.cn
 
-> 当前发布入口：`frontend/`（Vue 3 + TypeScript + Vite）。首页项目罗盘与详情弹窗已迁入 Vue，
-> 其余页面在构建时从根目录复制。运行 `cd frontend`、`npm ci`、`npm run build`，
-> **只发布 `frontend/dist/`**。直接上传根目录会把首页恢复成旧静态版本。
-> 本地 Vue 预览与迁移边界见 [frontend/README.md](frontend/README.md)。下文原静态站说明保留作基线参考。
+个人作品与技术笔记站，前端采用 Vue 3 + TypeScript + Vite，沿用纸张风格与现有 CSS。
+首页项目、笔记分页、技术栈、工作原则、关于区块，以及独立页面的导航和主要交互已迁入 Vue。
+文章正文仍使用 posts/ 中的 HTML。联系表单通过同源 API 对接既有家庭菜单后端。
 
-技术笔记与作品站。纯静态：无框架、无构建步骤、无外部字体/CDN、无统计脚本。
-
-站点不收录个人信息（姓名、学校、单位、联系方式、社交账号），只放项目与技术内容。
-
-**视觉**：复古纸张底 `#f5e8c9`，墨色文字 `#2b2318`，朱砂强调 `#a3462a`；
-标题衬线（Georgia / 宋体），数据与代码等宽。纸纹由 CSS 渐变 + SVG 噪点生成，不用图片。
-正文对比度 6.95:1、弱文字 4.91:1、强调字 4.98:1，均过 WCAG AA。
+**发布目录只有 `frontend/dist/`**。仓库根目录 HTML 是构建输入和静态回退，不可作为新版发布产物。
+详细迁移边界见 [frontend/README.md](frontend/README.md)，后端接入见 [backend/README.md](backend/README.md)。
 
 ## 一、本地预览
 
-```bash
-cd website
-python -m http.server 8123
-# http://127.0.0.1:8123/
+从仓库根目录执行：
+
+```powershell
+cd frontend
+npm ci
+npm run dev
+# http://127.0.0.1:5173/
 ```
 
-- 项目弹层深链：`/#p-devfleet`、`/#p-menu`、`/#p-zhiyuan`
-- 文章页：`/posts/why-vector-not-enough.html` 等十四篇，列表在首页 `#notes`（每页 5 条，共 3 页）
+预览正式构建：
+
+```powershell
+npm run build
+npm test
+npm run preview
+# http://127.0.0.1:4173/
+```
+
+- 项目详情深链接：`/#p-devfleet`、`/#p-menu`、`/#p-zhiyuan`。
+- 14 篇笔记位于 `posts/`；首页每页 5 条，共 3 页。
+- 本地 API 默认没有代理；真实入库与邮件需要独立接入，不能把静态预览当成后端验收。
 
 ## 二、文件结构
 
-```
-website/
-├── index.html          单页：Hero / 指标 / 作品 / 笔记 / 技能 / 原则 / 关于
+```text
+who-am-i/
+├── frontend/
+│   ├── src/                 Vue 组件、TypeScript 数据与业务逻辑
+│   ├── scripts/             从根目录生成页面、回退内容与动效资源版本
+│   ├── tests/               单元测试及浏览器回归脚本
+│   └── dist/                构建产物，唯一正式发布目录，不提交
+├── index.html               首页的静态内容与兼容脚本输入
+├── about.html               关于页和安全的联系表单回退
+├── notes.html
+├── works.html
+├── skills-principles.html
+├── posts/                   14 篇文章正文
+├── assets/                  共享样式、旧页面脚本和动效源码
+├── backend/                 联系接口补丁、测试和集成说明
+├── nginx.conf.example
 ├── 404.html
 ├── robots.txt
-├── sitemap.xml
-├── nginx.conf.example
-├── posts/              十四篇文章，独立页面，可单独分享
-│   ├── why-vector-not-enough.html      BM25 + RRF 混合检索
-│   ├── hitl-three-bugs.html            38 个单测全绿却没触发
-│   ├── dimension-mismatch.html         阈值与判据的量纲
-│   ├── eval-integrity.html             评测工具的三个静默缺陷
-│   ├── bounded-react-agent.html        手写有限 ReAct
-│   ├── multi-agent-boundary.html       多 Agent 拆分的边界
-│   ├── why-not-ragas.html              为什么不用 RAGAS
-│   ├── mcp-cold-start.html             MCP 首次调用 59.6 秒
-│   ├── false-refusal-zero.html         19 个误拒答怎么归零
-│   ├── agent-stop-conditions.html      Agent 循环的停止条件
-│   ├── sse-reconnect.html              SSE 断线后收到半句话
-│   ├── family-member-race.html         家庭成员上限的并发竞态
-│   ├── prompt-as-code.html             Prompt 当代码管
-│   └── canary-metrics.html             灰度 5% 该看哪三个指标
-└── assets/
-    ├── styles.css      共享基础样式（文章页正文与通用组件）
-    ├── home.css        首页布局与响应式样式
-    ├── post.css        文章页布局与响应式样式
-    ├── app.js          首页脚本：翻页、弹层、动效、笔记分页
-    ├── post.js         文章页脚本：移动端导航与焦点管理
-    ├── theme.js        日/夜阅读模式
-    ├── taste/          首页动效模块
-    ├── favicon.svg
-    └── og.png          1200×630 分享图
+└── sitemap.xml
 ```
 
 ## 三、怎么加一篇文章
@@ -70,7 +64,7 @@ website/
    - `<div class="callout">` 重点块
    - `<div class="quote">` 引用块（配 `<cite>`）
    - `<div class="table-wrap"><table>` 表格（`td.up` 绿色标注提升、`td.dim` 弱化）
-4. 在 `index.html` 的 `.notes-list` 里加一条（`data-page` 按顺序每 5 条一页；超过 15 条要在 `.notes-pager` 里再加一个按钮）：
+4. 在 `frontend/src/data/notes.ts` 添加笔记数据，并同步 `notes.html` 的无 JS 回退及 sitemap.xml。首页 Vue 会自动计算页数；同时在 `index.html` 的 `.notes-list` 里加一条（`data-page` 按顺序每 5 条一页；超过 15 条要在 `.notes-pager` 里再加一个按钮）：
 
 ```html
 <a class="note-item" data-page="3" href="posts/新文件名.html" data-reveal>
@@ -100,7 +94,7 @@ Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub" | ssh root@47.114.62.82 "mkdi
 
 ```powershell
 # 1. 服务器先备份
-ssh root@47.114.62.82 "tar -czf /root/backups/zmeety-$(date +%Y%m%d-%H%M).tgz -C /var/www/zmeety ."
+ssh root@47.114.62.82 'mkdir -p /root/backups && tar -czf /root/backups/zmeety-$(date +%Y%m%d-%H%M).tgz -C /var/www/zmeety .'
 
 # 2. 在仓库根目录构建并只打包公开产物
 Push-Location frontend
@@ -122,7 +116,7 @@ ssh root@47.114.62.82 "cd /var/www/zmeety && tar -xzf /tmp/zmeety-site.tgz && rm
 ### Nginx
 
 ```bash
-scp website/nginx.conf.example root@47.114.62.82:/etc/nginx/sites-enabled/zmeety.cn.conf
+scp nginx.conf.example root@47.114.62.82:/etc/nginx/sites-enabled/zmeety.cn.conf
 ssh root@47.114.62.82 "nginx -t && systemctl reload nginx"
 ```
 
@@ -178,5 +172,6 @@ curl -I https://zmeety.cn/nope                         # 404 + 自定义页
 ## 八、隐私与合规
 
 - 站点无统计、无追踪、无第三方请求
-- 不提供简历下载，不放邮箱/电话/社交账号
+- 不公开个人电话号码；关于页保留站主邮箱作为联系表单不可用时的备用入口。
+- 访客主动提交的昵称、联系方式和正文只用于本次联系；表单未就绪时禁用，避免默认 GET 把内容写入地址栏。
 - 页脚保留 ICP 备案号 `豫ICP备2026035370号-2`，链接指向工信部备案系统

@@ -54,7 +54,7 @@ onUnmounted(() => { disposed = true; client.dispose(); });
 </script>
 
 <template>
-  <form ref="form" class="contact-form" data-contact-form novalidate @submit.prevent="submit">
+  <form ref="form" class="contact-form" data-contact-form method="post" action="/api/v1/contact-messages" novalidate @submit.prevent="submit">
     <fieldset aria-describedby="category-error" :disabled="sending">
       <legend>你想聊什么？</legend>
       <div class="contact-types">
