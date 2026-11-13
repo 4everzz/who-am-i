@@ -28,14 +28,21 @@ website/
 ├── robots.txt
 ├── sitemap.xml
 ├── nginx.conf.example
-├── posts/              七篇文章，独立页面，可单独分享
+├── posts/              14 篇文章，独立页面，可单独分享
 │   ├── why-vector-not-enough.html      BM25 + RRF 混合检索
 │   ├── hitl-three-bugs.html            38 个单测全绿却没触发
 │   ├── dimension-mismatch.html         阈值与判据的量纲
 │   ├── eval-integrity.html             评测工具的三个静默缺陷
 │   ├── bounded-react-agent.html        手写有限 ReAct
 │   ├── multi-agent-boundary.html       多 Agent 拆分的边界
-│   └── why-not-ragas.html              为什么不用 RAGAS
+│   ├── why-not-ragas.html              为什么不用 RAGAS
+│   ├── agent-stop-conditions.html      Agent 停止条件
+│   ├── canary-metrics.html             金丝雀指标
+│   ├── false-refusal-zero.html         误拒问题降到 0
+│   ├── family-member-race.html         家庭成员并发竞态
+│   ├── mcp-cold-start.html             MCP 冷启动
+│   ├── prompt-as-code.html             Prompt 即代码
+│   └── sse-reconnect.html              SSE 断线重连
 └── assets/
     ├── styles.css      含文章页样式（.post-*）
     ├── app.js
@@ -129,7 +136,7 @@ curl -I https://zmeety.cn/nope                         # 404 + 自定义页
 
 | 项目 | 可写 | 不可写 |
 |---|---|---|
-| 智愿通 | 22.3s → 7.0s（-69%）、误拒答 19/35 → 0/35、忠实度 0.86→0.95→0.92、1,416 条测试、147 条规则 / 213,283 行 | 「已上线」「50+ 用户」「事实错误 0/35」、端到端 38.2s→10.7s |
+| 智愿通 | 22.3s → 7.0s（-69%）、误拒答 19/35 → 0/35、忠实度 0.86→0.95→0.92、1,416 条测试、147 条规则 / 213,283 行 | 「已上线」「50+ 用户」「事实错误率 0/35」、端到端 38.2s→10.7s |
 | 小家开饭啦 | H5 + 小程序已上线、50+ 核心用户（按实际使用人数）、59.6s→6.0s、381+12 测试 | 三端全部上线、向量化 / pgvector、一套代码含管理后台 |
 | DevFleet | 209 项测试、六类数据、5→1 页面、90s 超时、Milvus 降级 | 43 项测试、14 个工具 |
 

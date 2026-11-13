@@ -51,7 +51,7 @@
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
         var el = entry.target;
-        var delay = Number(el.getAttribute('data-delay') || 0);
+        var delay = Math.min(Number(el.getAttribute('data-delay') || 0), 140);
         setTimeout(function () { el.classList.add('is-in'); }, delay);
         revealObserver.unobserve(el);
       });
@@ -66,7 +66,7 @@
       var r = el.getBoundingClientRect();
       if (r.top < window.innerHeight + 80 && r.bottom > -80) el.classList.add('is-in');
     });
-  }, 1200);
+  }, 800);
 
   /* ---------- 数字滚动 ---------- */
   var counters = document.querySelectorAll('[data-count]');
@@ -84,7 +84,11 @@
 
   function runCounter(el) {
     var target = parseFloat(el.getAttribute('data-count'));
-    var duration = 900;
+    if (reduceMotion) {
+      el.textContent = counterText(el, target);
+      return;
+    }
+    var duration = 560;
     var start = null;
 
     function step(ts) {
@@ -212,6 +216,10 @@
       });
 
       card.addEventListener('mouseleave', function () {
+        if (raf) {
+          cancelAnimationFrame(raf);
+          raf = null;
+        }
         card.style.setProperty('--rx', '0deg');
         card.style.setProperty('--ry', '0deg');
       });
@@ -267,6 +275,7 @@
     var current = 0;
     var animating = false;
     var animToken = 0;
+    var expectedScrollY = null;
 
     function easeInOutCubic(t) {
       return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -283,9 +292,13 @@
       function frame(now) {
         if (token !== animToken) return;          // 被新动画接管
         var p = Math.min((now - t0) / duration, 1);
-        window.scrollTo(0, startY + dist * easeInOutCubic(p));
+        expectedScrollY = startY + dist * easeInOutCubic(p);
+        window.scrollTo(0, expectedScrollY);
         if (p < 1) requestAnimationFrame(frame);
-        else animating = false;
+        else {
+          animating = false;
+          expectedScrollY = null;
+        }
       }
       requestAnimationFrame(frame);
     }
@@ -305,7 +318,7 @@
       setPage(i);
       var head = document.querySelector('.site-header');
       var offset = head ? head.offsetHeight : 0;
-      scrollToY(Math.max(0, pages[i].offsetTop - offset), 680);
+      scrollToY(Math.max(0, pages[i].offsetTop - offset), 540);
     }
 
     var pageObserver = new IntersectionObserver(function (entries) {
@@ -317,20 +330,11 @@
     }, { threshold: 0.45 });
     pages.forEach(function (p) { pageObserver.observe(p); });
 
-    // 滚轮：任何情况下都先吃掉原生滚动，动画才不会被撕开
+    // 桌面端保留浏览器原生滚轮，和移动端一样连续滚动，避免触控板被整页动画接管
     function modalOpen() {
       return document.body.classList.contains('modal-open') ||
              !!document.querySelector('dialog[open]');
     }
-
-    window.addEventListener('wheel', function (e) {
-      if (!wide.matches) return;
-      if (modalOpen()) return;                 // 弹窗自己滚，别翻背景页
-      if (Math.abs(e.deltaY) < 4) return;
-      e.preventDefault();
-      if (animating) return;
-      go(current + (e.deltaY > 0 ? 1 : -1));
-    }, { passive: false });
 
     window.addEventListener('keydown', function (e) {
       if (!wide.matches || modalOpen()) return;
@@ -343,8 +347,15 @@
 
     // 拖滚动条时同步页码
     window.addEventListener('scroll', function () {
-      if (animating || !wide.matches) return;
+      if (!wide.matches) return;
       var y = window.pageYOffset;
+      if (animating && expectedScrollY !== null && Math.abs(y - expectedScrollY) > 3) {
+        // 用户拖动滚动条或原生滚动时，取消旧动画，避免它继续覆盖用户操作
+        animToken++;
+        animating = false;
+        expectedScrollY = null;
+      }
+      if (animating) return;
       var best = 1e9;
       var idx = current;
       pages.forEach(function (p, i) {
