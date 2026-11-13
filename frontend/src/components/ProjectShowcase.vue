@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { projects } from '../data/projects';
-import { createCarousel } from '../core/carousel';
+import { CAROUSEL_TURN_MS, createCarousel } from '../core/carousel';
 import type { ProjectId } from '../types/project';
 
 const props = defineProps<{ dialogProjectId: ProjectId | null }>();
@@ -13,9 +13,11 @@ const unsubscribe = carousel.subscribe(value => { state.value = value; });
 const live = ref('');
 const current = computed(() => projects[state.value.index]!);
 const pad = (value: number) => String(value).padStart(2, '0');
-const compassStyle = computed(() => ({ '--compass-angle': `${state.value.rotation}deg`, '--compass-return': `${-state.value.rotation}deg` }));
+const compassStyle = computed(() => ({ '--compass-angle': `${state.value.rotation}deg`, '--compass-return': `${-state.value.rotation}deg`, '--compass-turn-duration': `${CAROUSEL_TURN_MS}ms` }));
 let touchTimer: ReturnType<typeof setTimeout> | undefined;
 let touchStart: { id: number; x: number; y: number } | undefined;
+let touchActive = false;
+let keyboardInteraction = false;
 const cleanup: (() => void)[] = [];
 watch(() => props.dialogProjectId, id => {
   if (id) {
@@ -46,10 +48,39 @@ async function onKey(event: KeyboardEvent) {
 function focusOut(event: FocusEvent) {
   if (!root.value?.contains(event.relatedTarget as Node | null)) carousel.resume('focus');
 }
-function pointerEnter(event: PointerEvent) { if (event.pointerType !== 'touch') carousel.pause('pointer'); }
-function pointerLeave(event: PointerEvent) { if (event.pointerType !== 'touch') carousel.resume('pointer'); }
+function syncFocus() {
+  if (keyboardInteraction && root.value?.contains(document.activeElement)) carousel.pause('focus');
+  else carousel.resume('focus');
+}
+function keyboardInput(event: KeyboardEvent) {
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  keyboardInteraction = true;
+  syncFocus();
+}
+function pointerInput() { keyboardInteraction = false; carousel.resume('focus'); }
+function pointerMove(event: PointerEvent) {
+  if (event.pointerType === 'touch' || !root.value) return;
+  const target = event.target as Node | null;
+  if (!root.value.contains(target)) {
+    keyboardInteraction = false;
+    carousel.resume('focus');
+    carousel.resume('pointer');
+  }
+}
+function pointerEnter(event: PointerEvent) {
+  if (event.pointerType === 'touch') return;
+  keyboardInteraction = false;
+  carousel.resume('focus');
+  carousel.pause('pointer');
+}
+function pointerLeave(event: PointerEvent) {
+  if (event.pointerType === 'touch') return;
+  carousel.resume('pointer');
+  syncFocus();
+}
 function touchDown(event: PointerEvent) {
   if (event.pointerType !== 'touch') return;
+  touchActive = true;
   clearTimeout(touchTimer);
   carousel.pause('touch');
   const target = event.target as HTMLElement;
@@ -60,7 +91,8 @@ function touchDown(event: PointerEvent) {
   }
 }
 function touchEnd(event: PointerEvent) {
-  if (event.pointerType !== 'touch') return;
+  if (event.pointerType !== 'touch' || !touchActive) return;
+  touchActive = false;
   if (touchStart?.id === event.pointerId) {
     const dx = event.clientX - touchStart.x, dy = event.clientY - touchStart.y;
     if (event.type !== 'pointercancel' && Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy)) select(state.value.index + (dx < 0 ? 1 : -1));
@@ -74,7 +106,21 @@ onMounted(() => {
   const host = root.value!;
   const media = matchMedia('(prefers-reduced-motion: reduce)');
   const motion = () => media.matches ? carousel.pause('motion') : carousel.resume('motion');
-  const visibility = () => document.hidden ? carousel.pause('visibility') : carousel.resume('visibility');
+  const visibility = () => {
+    if (document.hidden) {
+      carousel.pause('visibility');
+      clearTimeout(touchTimer);
+      touchActive = false;
+      touchStart = undefined;
+      carousel.resume('touch');
+    } else {
+      const hovered = host.querySelector('.project-stage')?.matches(':hover') && matchMedia('(hover: hover)').matches;
+      if (hovered) carousel.pause('pointer');
+      else carousel.resume('pointer');
+      syncFocus();
+      carousel.resume('visibility');
+    }
+  };
   if (media.addEventListener) {
     media.addEventListener('change', motion);
     cleanup.push(() => media.removeEventListener('change', motion));
@@ -83,15 +129,21 @@ onMounted(() => {
     cleanup.push(() => media.removeListener(motion));
   }
   document.addEventListener('visibilitychange', visibility);
+  document.addEventListener('keydown', keyboardInput, true);
+  document.addEventListener('pointerdown', pointerInput, true);
+  document.addEventListener('pointermove', pointerMove, true);
   window.addEventListener('pointerup', touchEnd);
   window.addEventListener('pointercancel', touchEnd);
   cleanup.push(() => {
     document.removeEventListener('visibilitychange', visibility);
+    document.removeEventListener('keydown', keyboardInput, true);
+    document.removeEventListener('pointerdown', pointerInput, true);
+    document.removeEventListener('pointermove', pointerMove, true);
     window.removeEventListener('pointerup', touchEnd);
     window.removeEventListener('pointercancel', touchEnd);
   });
   motion(); visibility();
-  if (host.contains(document.activeElement)) carousel.pause('focus');
+  syncFocus();
   carousel.resume('initializing');
 });
 onUnmounted(() => {
@@ -105,8 +157,7 @@ onUnmounted(() => {
 <template>
   <span class="paper-chapter" aria-hidden="true">01</span>
   <div ref="root" class="wrap work-screen project-showcase" data-vue-project-carousel aria-label="精选项目"
-    @keydown="onKey" @focusin="carousel.pause('focus')" @focusout="focusOut"
-    @pointerenter="pointerEnter" @pointerleave="pointerLeave" @pointerdown.passive="touchDown">
+    @keydown="onKey" @focusin="syncFocus" @focusout="focusOut" @pointerdown.passive="touchDown">
     <div class="showcase-head">
       <div><div class="section-kicker">01 / Selected work</div><h2>精选项目</h2></div>
       <div class="showcase-status"><span data-project-counter>{{ pad(state.index + 1) }} / {{ pad(projects.length) }}</span></div>
@@ -133,7 +184,7 @@ onUnmounted(() => {
           <span class="compass-signal" aria-hidden="true"></span>
         </div>
       </div>
-      <div class="project-stage" tabindex="0" style="touch-action: pan-y">
+      <div class="project-stage" tabindex="0" style="touch-action: pan-y" @pointerenter="pointerEnter" @pointerleave="pointerLeave">
         <article v-for="(project, index) in projects" :key="project.id" class="project-slide" :class="{ 'is-active': state.index === index }"
           :data-project-slide="index" :aria-labelledby="`project-slide-title-${index}`" :hidden="state.index !== index">
           <div class="project-slide-copy">
@@ -160,3 +211,12 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.compass-notch-ring {
+  transition: transform var(--compass-turn-duration) cubic-bezier(.45, 0, .2, 1);
+}
+.compass-notch-content {
+  transition: transform var(--compass-turn-duration) cubic-bezier(.45, 0, .2, 1), border-color .25s ease, background-color .25s ease;
+}
+</style>

@@ -19,12 +19,16 @@ function fixture() {
   }
   return { carousel, advance, jobs };
 }
-test('advances every three seconds and wraps without reversing the compass', () => {
+test('rests three seconds after each slow turn and wraps without reversing', () => {
   const { carousel, advance } = fixture();
   carousel.resume('initializing');
   advance(2999); assert.equal(carousel.snapshot().index, 0);
   advance(1); assert.deepEqual(carousel.snapshot(), { index: 1, rotation: -120 });
-  advance(6000); assert.deepEqual(carousel.snapshot(), { index: 0, rotation: -360 });
+  advance(1399); assert.equal(carousel.snapshot().index, 1);
+  advance(1); // Turn finishes; the next full three-second dwell starts now.
+  advance(2999); assert.equal(carousel.snapshot().index, 1);
+  advance(1); assert.deepEqual(carousel.snapshot(), { index: 2, rotation: -240 });
+  advance(4400); assert.deepEqual(carousel.snapshot(), { index: 0, rotation: -360 });
 });
 test('overlapping pause reasons remain paused until every reason clears', () => {
   const { carousel, advance } = fixture();
@@ -53,7 +57,34 @@ test('disposing cancels timers and notifications', () => {
 test('rejects invalid runtime input instead of corrupting selection', () => {
   assert.throws(() => createCarousel({ count: 0 }));
   assert.throws(() => createCarousel({ count: 3, delay: -1 }));
+  assert.throws(() => createCarousel({ count: 3, transitionDuration: -1 }));
   const { carousel } = fixture();
   for (const value of [NaN, Infinity, 1.5]) assert.throws(() => carousel.select(value));
   assert.equal(carousel.snapshot().index, 0);
+});
+
+test('redundant resume events do not keep postponing autoplay', () => {
+  const { carousel, advance } = fixture();
+  carousel.resume('initializing');
+  advance(2000); carousel.resume('focus'); carousel.resume('pointer');
+  advance(1000); assert.equal(carousel.snapshot().index, 1);
+});
+
+test('a pause during rotation resumes with a full dwell after settling', () => {
+  const { carousel, advance } = fixture();
+  carousel.resume('initializing'); advance(3000);
+  carousel.pause('pointer'); advance(5000);
+  assert.equal(carousel.snapshot().index, 1);
+  carousel.resume('pointer'); advance(2999);
+  assert.equal(carousel.snapshot().index, 1);
+  advance(1); assert.equal(carousel.snapshot().index, 2);
+});
+
+test('rapid manual selection replaces the previous turn without extra ticks', () => {
+  const { carousel, advance, jobs } = fixture();
+  carousel.resume('initializing'); carousel.select(1); advance(500); carousel.select(2);
+  advance(1399); assert.equal(carousel.snapshot().index, 2);
+  advance(3000); assert.equal(carousel.snapshot().index, 2);
+  advance(1); assert.equal(carousel.snapshot().index, 0);
+  carousel.dispose(); advance(10000); assert.equal(jobs.size, 0);
 });
