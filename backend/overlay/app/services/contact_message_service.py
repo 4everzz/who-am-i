@@ -7,6 +7,7 @@ import ssl
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 
@@ -16,6 +17,7 @@ from app.core.database import AsyncSessionLocal
 from app.models.contact_message import ContactMessage
 
 logger = logging.getLogger(__name__)
+BEIJING_TZ = ZoneInfo('Asia/Shanghai')
 
 
 def validate_contact_configuration() -> None:
@@ -27,17 +29,29 @@ def validate_contact_configuration() -> None:
         raise ContactConfigurationError('Production contact submissions require an Origin header')
 
 
+def _format_contact_time(value: datetime) -> str:
+    """Render stored timestamps in a concise, explicit Beijing time format."""
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(BEIJING_TZ).strftime('%Y年%m月%d日 %H:%M（北京时间）')
+
+
 def _send_email_sync(message) -> None:
     category = '合作' if message.category == 'cooperation' else '建议'
     mail = EmailMessage()
-    mail['Subject'] = f'[zmeety.cn][{category}] 新联系消息'
+    mail['Subject'] = f'[zmeety.cn] 收到一条{category}联系'
     mail['From'] = settings.smtp_from or settings.smtp_username
     mail['To'] = settings.contact_notification_to
     if '@' in message.contact:
         mail['Reply-To'] = message.contact
     mail.set_content(
-        f'类型：{category}\n昵称：{message.nickname}\n联系方式：{message.contact}\n'
-        f'时间：{message.created_at.isoformat()}\n\n{message.content}\n'
+        '你的网站收到一条新的联系消息。\n\n'
+        f'联系类型：{category}\n'
+        f'访客昵称：{message.nickname}\n'
+        f'联系方式：{message.contact}\n'
+        f'提交时间：{_format_contact_time(message.created_at)}\n\n'
+        '留言内容：\n'
+        f'{message.content}\n'
     )
     context = ssl.create_default_context()
     if settings.smtp_use_ssl:
