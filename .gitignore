@@ -18,4 +18,8 @@ __pycache__/
 frontend/dist/
 frontend/.legacy-public/
 frontend/index.html
+frontend/notes.html
+frontend/skills-principles.html
+frontend/works.html
+frontend/about.html
 frontend/src/generated/

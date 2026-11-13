@@ -64,7 +64,13 @@
   updateScroll();
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   var desktop = window.matchMedia('(min-width: 901px) and (pointer: fine)');
-  var pages = Array.from(document.querySelectorAll('.pages > .page:not(#work), #work > .work-screen'));
+  // Vue mounts the 03/04/05 sections inside their app containers. Include
+  // those nested page elements so desktop wheel/keyboard paging visits every
+  // section in order instead of jumping from Notes straight to About.
+  var pages = Array.from(document.querySelectorAll(
+    '.pages > .page:not(#work), #work > .work-screen, ' +
+    '#home-stack-app > .page, #home-principles-app > .page, #home-about-app > .page'
+  ));
   var scrollFrame = 0;
   function cancelPageScroll() { cancelAnimationFrame(scrollFrame); scrollFrame = 0; }
   function moveTo(y) {
