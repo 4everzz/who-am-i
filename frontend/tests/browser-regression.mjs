@@ -12,6 +12,11 @@ export async function checkDesktop(browser, base = 'http://127.0.0.1:4173') {
   const y = () => page.evaluate(() => scrollY);
   const positionAt = id => page.evaluate(id => {
     document.activeElement?.blur();
+    // PageUp/PageDown are intentionally ignored while a button or link owns
+    // focus. Return focus to a neutral element before testing page paging;
+    // this also covers the dialog's focus restoration behavior.
+    document.body.setAttribute('tabindex', '-1');
+    document.body.focus({ preventScroll: true });
     window.scrollTo(0, document.getElementById(id).getBoundingClientRect().top + scrollY - document.querySelector('.site-header').offsetHeight);
   }, id);
   try {
@@ -52,6 +57,9 @@ export async function checkDesktop(browser, base = 'http://127.0.0.1:4173') {
     assert.ok(await page.evaluate(() => document.activeElement.hasAttribute('data-open')));
     results.push('reading hover and open dialog pause; Escape returns focus');
 
+    // Let the dialog close handler finish restoring focus before testing the
+    // page-level keyboard paging handler.
+    await page.waitForTimeout(50);
     await positionAt('notes');
     for (const id of ['stack', 'principles', 'about']) {
       await page.mouse.wheel(0, 120);

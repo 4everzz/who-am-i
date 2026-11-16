@@ -10,13 +10,20 @@
     "typecheck": "npm run prepare:site && vue-tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test:browser": "npm run build && node tests/run-browser-regression.mjs",
+    "test:browser:edge": "npm run build && node tests/run-browser-regression.mjs --edge",
+    "test:browser:all": "npm run test:browser && npm run test:browser:edge",
+    "test:all": "npm test && npm run test:browser"
   },
-  "dependencies": { "vue": "3.5.45" },
+  "dependencies": {
+    "vue": "3.5.45"
+  },
   "devDependencies": {
     "@vitejs/plugin-vue": "6.0.11",
-    "vite": "8.3.8",
+    "playwright": "1.65.1",
     "typescript": "~5.9.3",
+    "vite": "8.3.8",
     "vue-tsc": "3.3.14"
   }
 }
