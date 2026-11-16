@@ -15,7 +15,7 @@ test('validates both contact categories, trims text and accepts formatted phone 
 });
 
 test('rejects missing, overlong and malformed fields before making a request', () => {
-  for (const [field, value] of [['category', ''], ['category', 'other'], ['nickname', ' '], ['nickname', 'x'.repeat(81)], ['contact', 'bad@'], ['contact', '12'], ['contact', 'x'.repeat(161)], ['content', ' '], ['content', 'x'.repeat(4001)], ['nickname', 'a\nb'], ['contact', '1234\t5678'], ['content', 'a\0b']]) {
+  for (const [field, value] of [['category', ''], ['category', 'other'], ['nickname', ' '], ['nickname', 'x'.repeat(81)], ['contact', 'bad@'], ['contact', 'a,b@example.com'], ['contact', '12'], ['contact', 'x'.repeat(161)], ['content', ' '], ['content', 'x'.repeat(4001)], ['nickname', 'a\nb'], ['contact', '1234\t5678'], ['content', 'a\0b']]) {
     const result = validateContact({ ...message, [field]: value });
     assert.equal(result.ok, false, `${field}: ${value}`);
     assert.ok(result.errors[field]);

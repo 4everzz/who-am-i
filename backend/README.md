@@ -3,8 +3,8 @@
 个人站 Vue 3 + TypeScript 联系组件调用同源 `POST /api/v1/contact-messages`。
 后端补丁用于复用服务器 `/opt/family-menu/backend`，不另起一套数据库。
 
-2026-11-13 只读检查：运行容器尚未包含联系接口与 SMTP 配置。仓库有补丁不等于服务已上线。
-本轮仅修补与本地测试，没有对服务器应用补丁、执行迁移或重启服务。
+2026-11-16：联系接口、数据库迁移和 SMTP outbox 已部署到服务器；生产邮件已验证送达。
+服务器实际配置仍以 `/opt/family-menu/backend/.env.server` 和 Nginx 配置为准。
 
 ## 文件与集成方式
 

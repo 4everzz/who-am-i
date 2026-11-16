@@ -36,6 +36,8 @@ class ContactMessageCreateRequest(BaseModel):
     @field_validator("contact")
     @classmethod
     def validate_contact(cls, value: str) -> str:
+        if any(char in value for char in ',;"()'):
+            raise ValueError("请填写单个邮箱或手机号")
         email = re.fullmatch(r"[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+", value)
         digits = re.sub(r"[\s()+.-]", "", value)
         if not email and not (re.fullmatch(r"[0-9]{7,15}", digits)):

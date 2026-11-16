@@ -78,7 +78,7 @@ async def test_save_and_keep_personal_details_private(env, category):
 @pytest.mark.asyncio
 @pytest.mark.parametrize('changes', [
     {'category': 'other'}, {'nickname': '   '}, {'nickname': 'x' * 81},
-    {'contact': 'wrong'}, {'contact': 'x\r\nBCC:evil@example.com'},
+    {'contact': 'wrong'}, {'contact': 'a,b@example.com'}, {'contact': 'x\r\nBCC:evil@example.com'},
     {'contact': '123'}, {'content': '   '}, {'content': 'x' * 4001},
     {'content': 'test\x00test'}, {'request_id': 'invalid'}, {'unexpected': 'extra'},
 ])

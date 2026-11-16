@@ -9,7 +9,8 @@ export function validateContact(draft: ContactDraft):
   if (draft.category !== 'cooperation' && draft.category !== 'suggestion') errors.category = '请选择合作或建议。';
   if (!nickname || nickname.length > 80) errors.nickname = '请填写 1–80 字的昵称。';
   const digits = contact.replace(/[\s()+.\-]/g, '');
-  if (contact.length > 160 || !(/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(contact) || /^[0-9]{7,15}$/.test(digits))) {
+  const hasAddressSeparators = /[,;"()]/.test(contact);
+  if (contact.length > 160 || hasAddressSeparators || !(/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(contact) || /^[0-9]{7,15}$/.test(digits))) {
     errors.contact = '请填写有效的手机号或邮箱。';
   }
   if (!content || content.length > 4000) errors.content = '请填写 1–4000 字的联系内容。';
