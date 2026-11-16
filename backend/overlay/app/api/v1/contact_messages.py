@@ -10,7 +10,7 @@ from app.api.deps import DbSession, PlatformSuperAdmin
 from app.core.config import settings
 from app.core.contact_security import ContactConfigurationError, check_origins, contact_source_hash
 from app.core.response import success
-from app.models.contact_message import CONTACT_READ, ContactMessage
+from app.models.contact_message import CONTACT_NOTIFICATION_PENDING, CONTACT_READ, ContactMessage
 from app.schemas.contact_message import ContactMessageCreateRequest, ContactMessageListItem
 
 router = APIRouter(tags=["个人站联系"])
@@ -95,3 +95,17 @@ async def mark_contact_message_read(message_id: int, _: PlatformSuperAdmin, sess
         message.read_at = datetime.now(timezone.utc)
         await session.commit()
     return success(message='消息已标记为已读')
+
+
+@router.post('/admin/contact-messages/{message_id}/retry-notification', summary='人工重试联系邮件')
+async def retry_contact_notification(message_id: int, _: PlatformSuperAdmin, session: DbSession) -> dict:
+    message = await session.get(ContactMessage, message_id)
+    if message is None:
+        raise HTTPException(404, '消息不存在')
+    message.notification_status = CONTACT_NOTIFICATION_PENDING
+    message.notification_sent_at = None
+    message.notification_error = None
+    message.notification_attempts = 0
+    message.notification_next_attempt_at = datetime.now(timezone.utc)
+    await session.commit()
+    return success(message='邮件提醒已重新排队')

@@ -55,6 +55,7 @@ class ContactMessageInfo(BaseModel):
     created_at: datetime
     read_at: datetime | None
     notification_sent_at: datetime | None
+    notification_status: str
 
 
 class ContactMessageListItem(ContactMessageInfo):

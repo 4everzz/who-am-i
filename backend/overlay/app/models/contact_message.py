@@ -12,6 +12,9 @@ CONTACT_COOPERATION = "cooperation"
 CONTACT_SUGGESTION = "suggestion"
 CONTACT_UNREAD = "unread"
 CONTACT_READ = "read"
+CONTACT_NOTIFICATION_PENDING = "pending"
+CONTACT_NOTIFICATION_SENT = "sent"
+CONTACT_NOTIFICATION_MANUAL = "manual"
 
 
 class ContactMessage(Base, TimestampMixin):
@@ -21,6 +24,7 @@ class ContactMessage(Base, TimestampMixin):
     __table_args__ = (
         CheckConstraint("category IN ('cooperation', 'suggestion')", name="ck_contact_category"),
         CheckConstraint("status IN ('unread', 'read')", name="ck_contact_status"),
+        CheckConstraint("notification_status IN ('pending', 'sent', 'manual')", name="ck_contact_notification_status"),
     )
 
     id: Mapped[int] = mapped_column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True)
@@ -33,6 +37,10 @@ class ContactMessage(Base, TimestampMixin):
     source_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, comment="脱敏后的来源标识")
     read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     notification_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    notification_status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default=CONTACT_NOTIFICATION_PENDING,
+        server_default=CONTACT_NOTIFICATION_PENDING, index=True, comment="pending / sent / manual",
+    )
     notification_error: Mapped[str | None] = mapped_column(String(500), nullable=True)
     notification_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
     notification_next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), index=True)

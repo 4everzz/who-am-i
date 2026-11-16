@@ -14,7 +14,12 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.core.contact_security import ContactConfigurationError, check_origins, check_salt, trusted_proxy_addresses
 from app.core.database import AsyncSessionLocal
-from app.models.contact_message import ContactMessage
+from app.models.contact_message import (
+    CONTACT_NOTIFICATION_MANUAL,
+    CONTACT_NOTIFICATION_PENDING,
+    CONTACT_NOTIFICATION_SENT,
+    ContactMessage,
+)
 
 logger = logging.getLogger(__name__)
 BEIJING_TZ = ZoneInfo('Asia/Shanghai')
@@ -68,9 +73,12 @@ def _send_email_sync(message) -> None:
 async def deliver_pending_once() -> bool:
     async with AsyncSessionLocal() as session:
         now = datetime.now(timezone.utc)
+        max_attempts = max(1, int(getattr(settings, 'contact_notification_max_attempts', 5)))
         message = await session.scalar(
             select(ContactMessage).where(
                 ContactMessage.notification_sent_at.is_(None),
+                ContactMessage.notification_status == CONTACT_NOTIFICATION_PENDING,
+                ContactMessage.notification_attempts < max_attempts,
                 ContactMessage.notification_next_attempt_at <= now,
             ).order_by(ContactMessage.notification_next_attempt_at, ContactMessage.id)
             .limit(1).with_for_update(skip_locked=True)
@@ -82,11 +90,17 @@ async def deliver_pending_once() -> bool:
             await asyncio.to_thread(_send_email_sync, message)
         except Exception as error:
             message.notification_error = type(error).__name__
-            delay = min(3600, 30 * 2 ** min(message.notification_attempts, 7))
-            message.notification_next_attempt_at = now + timedelta(seconds=delay)
-            logger.warning('Contact email failed id=%s type=%s', message.id, type(error).__name__)
+            if message.notification_attempts >= max_attempts:
+                message.notification_status = CONTACT_NOTIFICATION_MANUAL
+                message.notification_next_attempt_at = now
+                logger.error('Contact email requires manual handling id=%s attempts=%s type=%s', message.id, message.notification_attempts, type(error).__name__)
+            else:
+                delay = min(3600, 30 * 2 ** min(message.notification_attempts, 7))
+                message.notification_next_attempt_at = now + timedelta(seconds=delay)
+                logger.warning('Contact email failed id=%s attempt=%s type=%s', message.id, message.notification_attempts, type(error).__name__)
         else:
             message.notification_sent_at = datetime.now(timezone.utc)
+            message.notification_status = CONTACT_NOTIFICATION_SENT
             message.notification_error = None
         await session.commit()
         return True

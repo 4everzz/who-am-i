@@ -20,7 +20,12 @@ from app.api.v1 import contact_messages as routes
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.exceptions import register_exception_handlers
-from app.models.contact_message import ContactMessage
+from app.models.contact_message import (
+    CONTACT_NOTIFICATION_MANUAL,
+    CONTACT_NOTIFICATION_PENDING,
+    CONTACT_NOTIFICATION_SENT,
+    ContactMessage,
+)
 from app.models.user import User
 from app.services import contact_message_service as delivery
 
@@ -48,6 +53,7 @@ async def env(tmp_path, monkeypatch):
     app.dependency_overrides[get_db] = session_override
     monkeypatch.setattr(delivery, 'AsyncSessionLocal', factory)
     monkeypatch.setattr(settings, 'contact_rate_limit_max_submissions', 3)
+    monkeypatch.setattr(settings, 'contact_notification_max_attempts', 5, raising=False)
     monkeypatch.setattr(settings, 'contact_hourly_limit', 60)
     monkeypatch.setattr(settings, 'contact_rate_limit_salt', 'test-contact-rate-limit-salt-at-least-32-characters')
     monkeypatch.setattr(settings, 'contact_require_origin', True)
@@ -72,6 +78,7 @@ async def test_save_and_keep_personal_details_private(env, category):
         row = await session.scalar(select(ContactMessage))
         assert row.contact == value['contact']
         assert row.status == 'unread' and row.notification_sent_at is None
+        assert row.notification_status == CONTACT_NOTIFICATION_PENDING
         assert len(row.source_hash) == 64
 
 
@@ -221,6 +228,7 @@ async def test_failed_mail_is_persisted_then_retried(env, monkeypatch):
         row = await session.scalar(select(ContactMessage))
         assert row.notification_sent_at is None
         assert row.notification_attempts == 1 and row.notification_error == 'RuntimeError'
+        assert row.notification_status == CONTACT_NOTIFICATION_PENDING
         row.notification_next_attempt_at = datetime.now(timezone.utc) - timedelta(seconds=1)
         await session.commit()
     sent = []
@@ -231,7 +239,42 @@ async def test_failed_mail_is_persisted_then_retried(env, monkeypatch):
         row = await session.scalar(select(ContactMessage))
         assert row.notification_sent_at is not None and row.notification_error is None
         assert row.notification_attempts == 2
+        assert row.notification_status == CONTACT_NOTIFICATION_SENT
     assert len(sent) == 1
+
+
+@pytest.mark.asyncio
+async def test_failed_mail_moves_to_manual_after_max_attempts(env, monkeypatch):
+    app, client, factory = env
+    monkeypatch.setattr(settings, 'contact_notification_max_attempts', 2, raising=False)
+    await client.post('/api/v1/contact-messages', json=payload())
+
+    def fail(_):
+        raise RuntimeError('smtp unavailable')
+
+    monkeypatch.setattr(delivery, '_send_email_sync', fail)
+    assert await delivery.deliver_pending_once()
+    async with factory() as session:
+        row = await session.scalar(select(ContactMessage))
+        row.notification_next_attempt_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+        await session.commit()
+    assert await delivery.deliver_pending_once()
+    assert not await delivery.deliver_pending_once()
+    async with factory() as session:
+        row = await session.scalar(select(ContactMessage))
+        assert row.notification_status == CONTACT_NOTIFICATION_MANUAL
+        assert row.notification_attempts == 2
+        message_id = row.id
+
+    async def owner():
+        return User(id=1, username='owner', is_platform_admin=True)
+    app.dependency_overrides[deps.get_current_user] = owner
+    response = await client.post(f'/api/v1/admin/contact-messages/{message_id}/retry-notification')
+    assert response.status_code == 200
+    async with factory() as session:
+        row = await session.scalar(select(ContactMessage))
+        assert row.notification_status == CONTACT_NOTIFICATION_PENDING
+        assert row.notification_attempts == 0
 
 
 @pytest.mark.asyncio
