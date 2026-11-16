@@ -47,11 +47,10 @@ for (const [id, mount] of [['stack', 'home-stack-app'], ['principles', 'home-pri
   if (!section.test(html)) throw new Error(`Homepage ${id} section changed; review the Vue adapter.`);
   html = html.replace(section, match => `<div id="${mount}">${match}</div>`);
 }
-const appScript = /<script src="assets\/app\.js[^\"]*"><\/script>/;
-if (!appScript.test(html)) throw new Error('Homepage script entry changed.');
-html = html.replace(appScript, '<script type="module" src="/src/main.ts"></script>');
+html = html.replace('<script src="assets/app.js?v=20261113a"></script>', '');
 html = html.replaceAll('href="assets/', 'href="/assets/').replaceAll('src="assets/', 'src="/assets/');
 html = html.replaceAll('/assets/taste/', `/assets/${motionAssets}/`);
+html = html.replace('</body>', '<script type="module" src="/src/main.ts"></script>\n</body>');
 await writeFile(new URL('../index.html', import.meta.url), html);
 
 let notesHtml = await readFile(new URL('notes.html', root), 'utf8');
@@ -95,30 +94,6 @@ aboutHtml = aboutHtml.replace(contactScript, '<script type="module" src="/src/ab
 aboutHtml = aboutHtml.replaceAll('href="assets/', 'href="/assets/').replaceAll('src="assets/', 'src="/assets/');
 await writeFile(new URL('../about.html', import.meta.url), withVueHeader(aboutHtml));
 
-// Transitional adapter: keep navigation/scrolling. Vue owns the carousel and dialogs.
-let legacy = await readFile(new URL('assets/app.js', root), 'utf8');
-const normalized = legacy.replaceAll('\r\n', '\n');
-const from = normalized.indexOf("  var projectCarousel = document.querySelector('[data-project-carousel]');\n  if (projectCarousel)");
-const to = normalized.indexOf("  var year = document.getElementById('year');", from);
-if (from < 0 || to < from) throw new Error('Legacy carousel boundary changed; review the adapter.');
-legacy = normalized.slice(0, from) + normalized.slice(to);
-const dialogStart = legacy.indexOf('  var openers = new WeakMap();');
-const dialogEnd = legacy.indexOf("  var list = document.getElementById('notesList');", dialogStart);
-if (dialogStart < 0 || dialogEnd < dialogStart) throw new Error('Legacy dialog boundary changed; review the adapter.');
-legacy = legacy.slice(0, dialogStart) + `
-  function openFromHash() {
-    if (/^#p-(devfleet|menu|zhiyuan)$/.test(location.hash)) return;
-    if (location.hash) scrollToHash(location.hash, false);
-  }
-  window.addEventListener('hashchange', openFromHash);
-  document.addEventListener('site:project-dialog-open', cancelPageScroll);
-  openFromHash();
-` + legacy.slice(dialogEnd);
-const notesStart = legacy.indexOf("  var list = document.getElementById('notesList');");
-const yearStart = legacy.indexOf("  var year = document.getElementById('year');", notesStart);
-if (notesStart < 0 || yearStart < notesStart) throw new Error('Homepage notes pagination boundary changed.');
-legacy = legacy.slice(0, notesStart) + legacy.slice(yearStart);
-await writeFile(new URL('legacy-home.js', generated), legacy);
-// Remove only the obsolete generated file from the first pilot build.
-await rm(new URL('assets/legacy-home.js', target), { force: true });
+// Home interactions are now typed Vue-side code; remove stale generated output from earlier builds.
+await rm(new URL('legacy-home.js', generated), { force: true });
 console.log('Prepared Vue entries for home, notes, skills, works and about with legacy public assets.');
