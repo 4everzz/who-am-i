@@ -153,6 +153,18 @@ export async function checkPages(browser, base = 'http://127.0.0.1:4173') {
       results.push(`${width}×${height}: five pages without overflow/errors, mocked contact submit succeeds`);
     } finally { await context.close(); }
   }
+  const articleContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const articlePage = await articleContext.newPage();
+  try {
+    await articlePage.goto(base + '/posts/mcp-cold-start.html');
+    await articlePage.locator('.menu-btn').click();
+    assert.equal(await articlePage.locator('.menu-btn').getAttribute('aria-expanded'), 'true');
+    await articlePage.keyboard.press('Escape');
+    assert.equal(await articlePage.locator('.menu-btn').getAttribute('aria-expanded'), 'false');
+    await articlePage.locator('.theme-toggle').click();
+    assert.equal(await articlePage.locator('html').getAttribute('data-theme'), 'dark');
+    results.push('article pages share typed mobile navigation and theme switching');
+  } finally { await articleContext.close(); }
   return results;
 }
 

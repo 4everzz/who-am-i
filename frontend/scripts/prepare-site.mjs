@@ -1,4 +1,5 @@
-import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, cp, rm, readdir } from 'node:fs/promises';
+import ts from 'typescript';
 import { projectFallback } from './site-fallbacks.mjs';
 import { versionedAssetDirectory } from './versioned-assets.mjs';
 
@@ -20,6 +21,11 @@ for (const name of ['assets', 'posts', '404.html', 'robots.txt', 'sitemap.xml'])
   await cp(new URL(name, root), new URL(name, target), { recursive: true });
 }
 const motionAssets = await versionedAssetDirectory(new URL('assets/taste/', root), new URL('assets/', target));
+const shellSource = await readFile(new URL('../src/site-shell.ts', import.meta.url), 'utf8');
+const shellOutput = ts.transpileModule(shellSource, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
+}).outputText;
+await writeFile(new URL('assets/site-shell.js', target), shellOutput);
 // These pages now have Vite entries; remove stale public copies from previous builds.
 for (const name of ['notes.html', 'skills-principles.html', 'works.html', 'about.html']) {
   await rm(new URL(name, target), { force: true });
@@ -93,6 +99,25 @@ aboutHtml = aboutHtml.replace(contactForm, '<div id="contact-app">$&</div>');
 aboutHtml = aboutHtml.replace(contactScript, '<script type="module" src="/src/about-main.ts"></script>');
 aboutHtml = aboutHtml.replaceAll('href="assets/', 'href="/assets/').replaceAll('src="assets/', 'src="/assets/');
 await writeFile(new URL('../about.html', import.meta.url), withVueHeader(aboutHtml));
+
+// Article pages keep their static content, but share the typed theme and mobile
+// navigation shell instead of loading two separate legacy scripts.
+const postsDirectory = new URL('posts/', target);
+for (const entry of await readdir(postsDirectory, { withFileTypes: true })) {
+  if (!entry.isFile() || !entry.name.endsWith('.html')) continue;
+  const file = new URL(entry.name, postsDirectory);
+  let postHtml = await readFile(file, 'utf8');
+  const scripts = /<script src="\.\.\/assets\/post\.js[^"]*" defer><\/script>\s*<script src="\.\.\/assets\/theme\.js[^"]*" defer><\/script>/;
+  if (!scripts.test(postHtml)) throw new Error(`Post script entry changed: ${entry.name}`);
+  postHtml = postHtml.replace(scripts, '<script type="module" src="../assets/site-shell.js"></script>');
+  await writeFile(file, postHtml);
+}
+const errorPage = new URL('404.html', target);
+let errorHtml = await readFile(errorPage, 'utf8');
+const errorTheme = /<script src="\/assets\/theme\.js[^"]*" defer><\/script>/;
+if (!errorTheme.test(errorHtml)) throw new Error('404 theme script entry changed.');
+errorHtml = errorHtml.replace(errorTheme, '<script type="module" src="/assets/site-shell.js"></script>');
+await writeFile(errorPage, errorHtml);
 
 // Home interactions are now typed Vue-side code; remove stale generated output from earlier builds.
 await rm(new URL('legacy-home.js', generated), { force: true });
