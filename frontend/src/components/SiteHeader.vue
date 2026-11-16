@@ -77,6 +77,7 @@ function onWide() {
 function onPageShow() {
   // A browser history restoration must not restore an overlay over an inert page.
   if (menuOpen.value) closeMenu(!wide?.matches);
+  try { applyTheme(normalizeTheme(localStorage.getItem(themeKey))); } catch { /* Keep the theme when storage is blocked. */ }
 }
 onMounted(() => {
   applyTheme(theme.value);
@@ -100,12 +101,13 @@ onUnmounted(() => {
 
 <template>
   <div ref="header" class="wrap header-inner">
-    <a class="brand" href="index.html" aria-label="返回首页" :inert="menuOpen">
+    <a class="brand" :href="currentPage === 'home' ? '#top' : 'index.html'" aria-label="返回首页" :inert="menuOpen">
       <span class="brand-mark" aria-hidden="true">Z</span>
       <span class="brand-text">zmeety<span class="brand-sub">个人小站</span></span>
     </a>
     <nav id="nav" ref="nav" class="nav" aria-label="主导航">
       <a v-for="item in navigation" :key="item.id" :href="item.href"
+        :class="{ 'is-active': currentPage === item.id }"
         :aria-current="currentPage === item.id ? 'page' : undefined" @click="closeMenu()">{{ item.label }}</a>
     </nav>
     <div class="header-actions">

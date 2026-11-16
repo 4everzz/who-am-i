@@ -1,6 +1,6 @@
 # Vue 试用阶段
 
-Vue 3 + TypeScript + Vite。目前迁移首页项目罗盘、轮播状态、项目详情弹窗、笔记目录、技能与原则页、作品页和关于页联系表单，外观使用现有 CSS。
+Vue 3 + TypeScript + Vite。目前已迁移首页项目罗盘、轮播状态、项目详情弹窗、分段滚动、笔记目录、技能与原则页、作品页和关于页联系表单，外观使用现有 CSS。首页与四个独立页面共用 Vue 导航；14 篇文章和 404 页的主题、移动菜单使用独立 TypeScript 外壳。
 正式发布使用 `frontend/dist/`；根目录静态页面仍是过渡期的页面壳、内容回退和旧脚本输入，不能直接用于整站部署。
 
 ## 本地预览
@@ -15,6 +15,7 @@ npm run dev
 使用 Node.js 22.12+。`npm test` 通过 Node 的类型擦除支持运行轮播核心测试；
 `npm run typecheck` 单独检查类型，`npm run build` 执行类型检查和生产构建。
 `npm run preview` 在 4173 端口预览构建结果。
+`npm run test:browser:all` 依次构建并运行 Chromium 和本机 Microsoft Edge 回归；单独运行可使用 `test:browser` / `test:browser:edge`。
 
 ## 后续换 React 的边界
 
@@ -24,16 +25,18 @@ npm run dev
 - `src/App.vue`：项目选择、详情深链接、历史导航和关闭后的焦点恢复。
 - `src/components/ProjectShowcase.vue`、`ProjectDialog.vue`、`NotesApp.vue`、`SkillsApp.vue`：Vue 模板、响应式绑定和生命周期。换 React 时需重写这一层。
 - `src/components/WorksApp.vue`、`works/ProjectArticle.vue`、`works/*Article.vue`：作品页复用项目 ID 和名称，公共文章外壳使用类型化 props，长文保留为模板插槽，原生 `details` 继续支持鼠标和键盘展开。
-- `src/components/SiteHeader.vue`、`src/data/navigation.ts`：独立页面共用导航、主题切换和移动菜单；菜单打开时正文设为 inert，Esc 关闭并恢复按钮焦点，桌面断点兼容旧版 `MediaQueryList`。
+- `src/components/SiteHeader.vue`、`src/data/navigation.ts`：首页与独立页面共用导航、主题切换和移动菜单；菜单打开时正文设为 inert，Esc 关闭并恢复按钮焦点，桌面断点兼容旧版 `MediaQueryList`。
 - `src/components/HomeNotes.vue`：首页技术笔记分页由 Vue 管理，每页 5 篇，保留原按钮、深链接和 `aria-live` 播报；旧首页脚本不再绑定分页事件。
-- `src/components/HomeStack.vue`、`HomePrinciples.vue`、`HomeAbout.vue`：首页技术栈、工作原则和关于区块由 Vue 渲染，保持原有 section ID，旧滚动和入场脚本仍可识别这些节点。
+- `src/components/HomeStack.vue`、`HomePrinciples.vue`、`HomeAbout.vue`：首页技术栈、工作原则和关于区块由 Vue 渲染，保持原有 section ID。
+- `src/core/home-interactions.ts`：首页滚轮/键盘分段滚动、锚点、进度条、入场观察与减少动态效果适配；入口卸载时取消动画并解绑监听。
+- `src/site-shell.ts`：文章与 404 页的原生 DOM 外壳，保留静态正文，不需要加载 Vue 运行时。模块目前不含外部导入，由准备脚本转译为带内容哈希的 JS；若以后新增模块依赖，应改为打包入口，不能只转译单文件。
 - CSS、现有后端 API 不依赖 Vue。新增 API 请求和校验逻辑放到独立模块，避免混入组件。
 - `src/core/contact.ts`：独立的表单校验、同源请求、15 秒超时、重复提交保护及重试请求编号；不依赖 Vue，可以复用到 React。
 - `src/components/ContactForm.vue`：分类选择、输入状态、错误提示和焦点管理；提交期间锁定输入，失败保留内容，成功清空并聚焦回执。关于页介绍与邮箱备用入口继续保留静态 HTML。
 
 这是渐进迁移，不是全站 SPA。`scripts/prepare-site.mjs` 从当前静态站生成预览壳和公开资源，
-去掉旧轮播和弹窗代码后保留导航、整屏滚动等旧交互。弹窗状态通过 Vue 的类型化 props/emits
-通知轮播暂停/恢复；打开弹窗时发送一个页面事件取消旧滚动动画。
+首页不再生成或加载 `legacy-home.js`，交互由 Vue 组件与 TypeScript 模块负责。弹窗状态通过 Vue 的类型化 props/emits
+通知轮播暂停/恢复；打开弹窗时发送页面事件取消进行中的分段滚动。
 弹窗长文从仓库根目录 HTML 在构建时提取到 `src/generated/project-details.json`，保持当前文案。
 这份 HTML 只允许来自受信任的仓库文件，不能将用户输入或 API 返回值传入 `v-html`。
 启动后如果修改根目录旧页面或 CSS，需要重新运行 `npm run dev` 来同步副本。
@@ -48,7 +51,7 @@ Vue 入口和生成的兼容脚本使用内容哈希文件名，避免新页面�
 根目录仍是未迁移页面和旧交互的输入，不再直接用于整站部署。
 当前未配置联系表单开发代理，本地试用不用于验证真实数据库或邮件投递。
 关于页只加载 Vue 表单入口，不再加载 `assets/contact.js`，避免重复注册提交事件。接口仍为 `POST /api/v1/contact-messages`；成功响应须为 HTTP 成功状态、`code: 0` 且 `data.id` 对应本次 `request_id`。
-笔记、作品、技能和关于页均只加载 `mount-header` 共享入口，不再加载旧的 `theme.js` / `post.js` 页面脚本；首页继续使用首页专用静态导航和现有轮播兼容脚本。
+首页、笔记、作品、技能和关于页均使用 `mount-header` 共享入口。构建后的文章和 404 页使用 `site-shell-<hash>.js`；文章内“笔记”导航标为当前栏目，404 资源使用绝对路径以支持嵌套错误地址。
 `npm test` 包含联系表单校验、重试幂等、重复提交、异常响应、超时和卸载取消测试，均使用模拟请求。真实入库与邮件投递需另在集成环境验收。
 本阶段不增加 Vue Router、Pinia 或 UI 组件库，先通过一个真实模块确定使用感受。
 
@@ -64,7 +67,7 @@ Vue 入口和生成的兼容脚本使用内容哈希文件名，避免新页面�
 - `withVueHeader` 会检查原静态页面的 header 与旧脚本标签。结构变动后若构建报错，应更新适配规则，不能跳过检查并同时加载两套事件。
 
 `tests/browser-regression.mjs` 导出 Playwright 检查函数；在本地 preview 上调用 `checkDesktop(browser)`、
-`checkFallbacks(browser)`、`checkPages(browser)`，覆盖实际键鼠、刷新/后退、无脚本回退、四种尺寸和模拟表单提交。
+`checkFallbacks(browser)`、`checkPages(browser)`、`checkArticleShell(browser)` 和 `checkTouch(browser)`，覆盖实际键鼠、刷新/后退、无脚本回退、四种尺寸、各页主题/菜单、14 篇文章、嵌套 404 资源与模拟表单提交。404 响应与 pageshow 缓存恢复事件在本地模拟，不代表正式 Nginx 或真机浏览器验收。
 它不在 `npm test` 中自动运行，也不会请求正式 API 或发送邮件。
 鼠标点击不保留永久暂停状态；阅读右侧卡片、键盘焦点停留、打开弹窗或页面隐藏时暂停。
 鼠标离开卡片后可自动恢复；系统减少动画设置开启时不自动轮播。

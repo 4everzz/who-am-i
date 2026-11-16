@@ -132,6 +132,13 @@ export async function checkPages(browser, base = 'http://127.0.0.1:4173') {
         await page.goto(base + path);
         await page.locator('[data-v-app]').first().waitFor();
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}: overflow at ${path}`);
+        const theme = page.locator('.theme-toggle');
+        await theme.click();
+        assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', path + ': theme button must respond');
+        assert.equal(await theme.getAttribute('aria-pressed'), 'true');
+        await theme.click();
+        assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
+        if (width === 390) await checkMobileMenu(page);
       }
       let submissions = 0;
       await page.route('**/api/v1/contact-messages', async route => {
@@ -157,15 +164,90 @@ export async function checkPages(browser, base = 'http://127.0.0.1:4173') {
   const articlePage = await articleContext.newPage();
   try {
     await articlePage.goto(base + '/posts/mcp-cold-start.html');
-    await articlePage.locator('.menu-btn').click();
-    assert.equal(await articlePage.locator('.menu-btn').getAttribute('aria-expanded'), 'true');
-    await articlePage.keyboard.press('Escape');
-    assert.equal(await articlePage.locator('.menu-btn').getAttribute('aria-expanded'), 'false');
+    await articlePage.locator('.nav a[aria-current="page"]').waitFor({ state: 'attached' });
+    assert.equal(await articlePage.locator('.nav a[href="../notes.html"]').getAttribute('aria-current'), 'page');
+    await checkMobileMenu(articlePage);
     await articlePage.locator('.theme-toggle').click();
     assert.equal(await articlePage.locator('html').getAttribute('data-theme'), 'dark');
     results.push('article pages share typed mobile navigation and theme switching');
   } finally { await articleContext.close(); }
   return results;
+}
+
+async function checkMobileMenu(page) {
+  const menu = page.locator('.menu-btn');
+  await menu.click();
+  assert.equal(await menu.getAttribute('aria-expanded'), 'true');
+  assert.equal(await page.locator('main').evaluate(element => element.inert), true);
+  assert.equal(await page.locator('.brand').evaluate(element => element.inert), true);
+  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('.nav a')), true);
+  await page.keyboard.press('Shift+Tab');
+  assert.equal(await menu.evaluate(element => element === document.activeElement), true);
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('.nav a')), true);
+  await page.keyboard.press('Escape');
+  assert.equal(await menu.getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.locator('main').evaluate(element => element.inert), false);
+  assert.equal(await menu.evaluate(element => element === document.activeElement), true);
+}
+
+export async function checkArticleShell(browser, base = 'http://127.0.0.1:4173') {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('response', response => {
+    if (response.url().startsWith(base + '/assets/') && response.status() >= 400) {
+      errors.push(response.status() + ' ' + response.url());
+    }
+  });
+  try {
+    await page.goto(base + '/notes.html');
+    await page.locator('#notes-app[data-v-app]').waitFor();
+    const articles = await page.locator('.note-card').evaluateAll(links => links.map(link => link.getAttribute('href')));
+    assert.equal(new Set(articles).size, 14);
+    let shellPath;
+    for (const article of articles) {
+      await page.goto(base + '/' + article);
+      await page.locator('.nav a[aria-current="page"]').waitFor({ state: 'attached' });
+      const shell = await page.locator('script[src*="site-shell-"]').getAttribute('src');
+      assert.match(shell, /\.\.\/assets\/site-shell-[a-f0-9]{12}\.js$/);
+      shellPath ??= new URL(shell, page.url()).pathname;
+      assert.equal(new URL(shell, page.url()).pathname, shellPath);
+      assert.equal(await page.locator('script[src*="/post.js"], script[src*="/theme.js"]').count(), 0);
+      assert.ok(await page.locator('article h1').isVisible());
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), article);
+    }
+    await page.locator('.theme-toggle').click();
+    await page.reload();
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+    await checkMobileMenu(page);
+
+    // Recreate an open menu restored by the back/forward cache.
+    await page.locator('.menu-btn').click();
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
+    assert.equal(await page.locator('.menu-btn').getAttribute('aria-expanded'), 'false');
+    assert.equal(await page.locator('main').evaluate(element => element.inert), false);
+    await page.locator('.menu-btn').click();
+    await page.locator('.menu-btn').focus();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.waitForFunction(() => !document.querySelector('main').inert);
+    assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('.nav a[aria-current="page"]')), true);
+
+    // Exercise the absolute resource URL when 404 HTML is served for a nested path.
+    const errorHtml = await (await context.request.get(base + '/404.html')).text();
+    await page.route('**/posts/not-exist.html', route => route.fulfill({
+      status: 404, contentType: 'text/html', body: errorHtml,
+    }));
+    const response = await page.goto(base + '/posts/not-exist.html');
+    assert.equal(response.status(), 404);
+    assert.equal(await page.locator('script[src*="site-shell-"]').getAttribute('src'), shellPath);
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+    await page.locator('.theme-toggle').click();
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
+    assert.deepEqual(errors, []);
+    return ['14 article shells, current navigation, persistent themes, resize/history menu cleanup and nested 404 resources'];
+  } finally { await context.close(); }
 }
 
 export async function checkTouch(browser, base = 'http://127.0.0.1:4173') {

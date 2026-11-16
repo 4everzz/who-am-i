@@ -28,11 +28,11 @@ export function setupHomeInteractions(): Cleanup {
     '#home-stack-app > .page, #home-principles-app > .page, #home-about-app > .page',
   )];
   const cleanups: Cleanup[] = [];
-  let pending = false;
+  let updateFrame = 0;
   let scrollFrame = 0;
 
   function updateScroll() {
-    pending = false;
+    updateFrame = 0;
     const height = document.documentElement.scrollHeight - window.innerHeight;
     if (bar) bar.style.transform = `scaleX(${height > 0 ? window.scrollY / height : 0})`;
     header?.classList.toggle('is-stuck', window.scrollY > 8);
@@ -52,10 +52,7 @@ export function setupHomeInteractions(): Cleanup {
   }
 
   function queueScroll() {
-    if (!pending) {
-      pending = true;
-      requestAnimationFrame(updateScroll);
-    }
+    if (!updateFrame) updateFrame = requestAnimationFrame(updateScroll);
   }
 
   function cancelPageScroll() {
@@ -259,6 +256,7 @@ export function setupHomeInteractions(): Cleanup {
 
   return () => {
     cancelPageScroll();
+    cancelAnimationFrame(updateFrame);
     cleanups.splice(0).forEach(cleanup => cleanup());
   };
 }
