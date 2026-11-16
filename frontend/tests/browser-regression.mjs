@@ -205,7 +205,8 @@ export async function checkArticleShell(browser, base = 'http://127.0.0.1:4173')
     await page.goto(base + '/notes.html');
     await page.locator('#notes-app[data-v-app]').waitFor();
     const articles = await page.locator('.note-card').evaluateAll(links => links.map(link => link.getAttribute('href')));
-    assert.equal(new Set(articles).size, 14);
+    assert.ok(articles.length > 0);
+    assert.equal(new Set(articles).size, articles.length);
     let shellPath;
     for (const article of articles) {
       await page.goto(base + '/' + article);
@@ -246,8 +247,67 @@ export async function checkArticleShell(browser, base = 'http://127.0.0.1:4173')
     await page.locator('.theme-toggle').click();
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     assert.deepEqual(errors, []);
-    return ['14 article shells, current navigation, persistent themes, resize/history menu cleanup and nested 404 resources'];
+    return [articles.length + ' article shells, current navigation, persistent themes, resize/history menu cleanup and nested 404 resources'];
   } finally { await context.close(); }
+}
+
+export async function checkNoteCatalog(browser, base = 'http://127.0.0.1:4173') {
+  const readCards = page => page.locator('.note-card').evaluateAll(cards => cards.map(card => ({
+    href: card.getAttribute('href'), title: card.querySelector('h3').textContent,
+    type: card.querySelector('.note-type').textContent, description: card.querySelector('p').textContent,
+  })));
+  let catalog;
+  for (const mode of ['no-js', 'blocked-scripts']) {
+    const context = await browser.newContext({ javaScriptEnabled: mode !== 'no-js', viewport: { width: 390, height: 844 } });
+    if (mode === 'blocked-scripts') await context.route('**/*.js*', route => route.abort());
+    try {
+      const page = await context.newPage();
+      await page.goto(base + '/notes.html');
+      const cards = await readCards(page);
+      assert.ok(cards.length > 0);
+      catalog ??= cards;
+      assert.deepEqual(cards, catalog);
+      assert.equal(await page.locator('.block-index').textContent(), cards.length + ' essays / continuously updated');
+      assert.equal(await page.locator('.note-card:visible').count(), cards.length);
+      await page.goto(base + '/');
+      assert.equal(await page.locator('#notes .note-item:visible').count(), cards.length);
+      assert.equal(await page.locator('#home-notes-app button').count(), 0);
+      const titles = await page.locator('#notes .note-title').allTextContents();
+      assert.deepEqual(titles, cards.map(card => card.title));
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    } finally { await context.close(); }
+  }
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    const context = await browser.newContext({ viewport });
+    try {
+      const page = await context.newPage();
+      const errors = [];
+      page.on('pageerror', error => errors.push(error.message));
+      await page.goto(base + '/notes.html');
+      await page.locator('#notes-app[data-v-app]').waitFor();
+      assert.deepEqual(await readCards(page), catalog);
+      await page.goto(base + '/');
+      await page.locator('#home-notes-app[data-v-app]').waitFor();
+      const count = Math.ceil(catalog.length / 5);
+      assert.equal(await page.locator('#notes .page-dot').count(), count);
+      for (let number = 1; number <= count; number++) {
+        const button = page.locator('#notes .page-dot').nth(number - 1);
+        await button.click();
+        await page.waitForFunction(number => document.getElementById('notesList').dataset.active === String(number), number);
+        assert.equal(await button.getAttribute('aria-current'), 'page');
+        const rows = await page.locator('#notes .note-item').evaluateAll(links => links.map(link => ({
+          href: link.getAttribute('href'), title: link.querySelector('.note-title').textContent,
+        })));
+        assert.deepEqual(rows, catalog.slice((number - 1) * 5, number * 5).map(({ href, title }) => ({ href, title })));
+      }
+      const xml = await (await context.request.get(base + '/sitemap.xml')).text();
+      const articleUrls = [...xml.matchAll(/<loc>(https:\/\/zmeety\.cn\/posts\/[^<]+)<\/loc>/g)].map(match => match[1]);
+      assert.deepEqual(articleUrls, catalog.map(note => 'https://zmeety.cn/' + note.href));
+      assert.doesNotMatch(xml, /<!-- build:/);
+      assert.deepEqual(errors, []);
+    } finally { await context.close(); }
+  }
+  return ['one catalog across Vue, no-js/blocked-script fallbacks, all note pages and the published sitemap'];
 }
 
 export async function checkTouch(browser, base = 'http://127.0.0.1:4173') {

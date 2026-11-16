@@ -40,7 +40,7 @@ who-am-i/
 │   ├── scripts/             从根目录生成页面、回退内容与动效资源版本
 │   ├── tests/               单元测试及浏览器回归脚本
 │   └── dist/                构建产物，唯一正式发布目录，不提交
-├── index.html               首页的静态内容与兼容脚本输入
+├── index.html               首页模板，笔记清单由 TypeScript 数据生成
 ├── about.html               关于页和安全的联系表单回退
 ├── notes.html
 ├── works.html
@@ -51,7 +51,7 @@ who-am-i/
 ├── nginx.conf.example
 ├── 404.html
 ├── robots.txt
-└── sitemap.xml
+└── sitemap.xml              基础页面模板，构建时自动填入文章 URL
 ```
 
 ## 三、怎么加一篇文章
@@ -64,20 +64,19 @@ who-am-i/
    - `<div class="callout">` 重点块
    - `<div class="quote">` 引用块（配 `<cite>`）
    - `<div class="table-wrap"><table>` 表格（`td.up` 绿色标注提升、`td.dim` 弱化）
-4. 在 `frontend/src/data/notes.ts` 添加笔记数据，并同步 `notes.html` 的无 JS 回退及 sitemap.xml。首页 Vue 会自动计算页数；同时在 `index.html` 的 `.notes-list` 里加一条（`data-page` 按顺序每 5 条一页；超过 15 条要在 `.notes-pager` 里再加一个按钮）：
+4. 在 `frontend/src/data/notes.ts` 添加一条数据（文件名使用小写英文字母、数字和连字符），按数组顺序展示：
 
-```html
-<a class="note-item" data-page="3" href="posts/新文件名.html" data-reveal>
-  <span class="note-kicker">分类 / 标签</span>
-  <span class="note-body">
-    <span class="note-title">标题</span>
-    <span class="note-desc">一句话摘要。</span>
-  </span>
-  <span class="note-arrow" aria-hidden="true">→</span>
-</a>
+```ts
+{
+  href: 'posts/new-note.html',
+  type: '分类 / 标签',
+  title: '标题',
+  description: '一句话摘要。',
+},
 ```
 
-5. 把 `index.html`、`404.html`、所有 `posts/*.html` 和对应的 `assets/*.css` / `assets/*.js` 引用里的 `?v=日期` 一起换掉，避免缓存；`sitemap.xml` 也补一条。
+5. 在 `frontend/` 执行 `npm run build`。首页静态清单、笔记页目录、文章数量和 sitemap 自动生成，Vue 分页自动按每页 5 条计算，无需手工补分页按钮。构建会检查重复链接、缺失正文和未登记的文章。
+6. 执行 `npm test` 和 `npm run test:browser:all`，检查桌面/手机上的目录与分页。部署使用新的 `frontend/dist/`；正文修改无需重写全部页面的脚本版本。
 
 ## 四、部署
 

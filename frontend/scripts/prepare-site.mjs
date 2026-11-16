@@ -3,8 +3,13 @@ import ts from 'typescript';
 import { createHash } from 'node:crypto';
 import { projectFallback } from './site-fallbacks.mjs';
 import { versionedAssetDirectory } from './versioned-assets.mjs';
+import { notes } from '../src/data/notes.ts';
+import { fillContentSlot, renderHomeNotes, renderNoteCatalog, renderNoteSitemap, validateNoteCatalog } from './note-content.mjs';
 
 const root = new URL('../../', import.meta.url);
+const articlePaths = (await readdir(new URL('posts/', root), { withFileTypes: true }))
+  .filter(entry => entry.isFile() && entry.name.endsWith('.html')).map(entry => 'posts/' + entry.name);
+validateNoteCatalog(notes, articlePaths);
 function withVueHeader(html, legacyScripts = true) {
   const header = '<header class="site-header">';
   const themeScript = /<script src="\/?assets\/theme\.js[^"]*"><\/script>/;
@@ -18,9 +23,11 @@ function withVueHeader(html, legacyScripts = true) {
 const target = new URL('../.legacy-public/', import.meta.url);
 await mkdir(target, { recursive: true });
 // Only public assets: never copy backend code, environment files or repository metadata.
-for (const name of ['assets', 'posts', '404.html', 'robots.txt', 'sitemap.xml']) {
+for (const name of ['assets', 'posts', '404.html', 'robots.txt']) {
   await cp(new URL(name, root), new URL(name, target), { recursive: true });
 }
+const sitemap = await readFile(new URL('sitemap.xml', root), 'utf8');
+await writeFile(new URL('sitemap.xml', target), fillContentSlot(sitemap, '<!-- build:note-urls -->', renderNoteSitemap(notes)));
 const motionAssets = await versionedAssetDirectory(new URL('assets/taste/', root), new URL('assets/', target));
 const shellSource = await readFile(new URL('../src/site-shell.ts', import.meta.url), 'utf8');
 const shellOutput = ts.transpileModule(shellSource, {
@@ -54,9 +61,7 @@ const work = /(<section class="section page" id="work">)([\s\S]*?)(<\/section>)/
 if (!work.test(html)) throw new Error('Homepage project section changed; review the Vue pilot adapter.');
 // Readable before Vue mounts, with JavaScript disabled, or if its bundle fails.
 html = html.replace(work, projectFallback);
-const homeNotes = /<div class="notes-list" id="notesList">[\s\S]*?<\/nav>/;
-if (!homeNotes.test(html)) throw new Error('Homepage notes pagination changed; review the Vue notes adapter.');
-html = html.replace(homeNotes, match => `<div id="home-notes-app">${match}</div>`);
+html = fillContentSlot(html, '<!-- build:home-notes -->', renderHomeNotes(notes));
 for (const [id, mount] of [['stack', 'home-stack-app'], ['principles', 'home-principles-app'], ['about', 'home-about-app']]) {
   const section = new RegExp(`<section[^>]+id="${id}"[\\s\\S]*?<\\/section>`);
   if (!section.test(html)) throw new Error(`Homepage ${id} section changed; review the Vue adapter.`);
@@ -71,10 +76,8 @@ html = html.replace('</body>', '<script type="module" src="/src/main.ts"></scrip
 await writeFile(new URL('../index.html', import.meta.url), withVueHeader(html, false));
 
 let notesHtml = await readFile(new URL('notes.html', root), 'utf8');
-const catalog = /<div class="note-catalog">[\s\S]*?<\/div>/;
-if (!catalog.test(notesHtml)) throw new Error('Notes catalog changed; review the Vue notes adapter.');
-// Keep readable content before the module loads, and when JavaScript is disabled.
-notesHtml = notesHtml.replace('<div class="note-catalog">', '<div id="notes-app" class="note-catalog">');
+notesHtml = fillContentSlot(notesHtml, '<!-- build:note-count -->', String(notes.length));
+notesHtml = fillContentSlot(notesHtml, '<!-- build:note-catalog -->', renderNoteCatalog(notes));
 const postScript = /<script src="assets\/post\.js[^\"]*"><\/script>/;
 if (!postScript.test(notesHtml)) throw new Error('Notes page script entry changed; review the Vue notes adapter.');
 notesHtml = notesHtml.replace(postScript, '$&<script type="module" src="/src/notes-main.ts"></script>');

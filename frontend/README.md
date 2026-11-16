@@ -39,11 +39,13 @@ npm run dev
 通知轮播暂停/恢复；打开弹窗时发送页面事件取消进行中的分段滚动。
 弹窗长文从仓库根目录 HTML 在构建时提取到 `src/generated/project-details.json`，保持当前文案。
 这份 HTML 只允许来自受信任的仓库文件，不能将用户输入或 API 返回值传入 `v-html`。
-启动后如果修改根目录旧页面或 CSS，需要重新运行 `npm run dev` 来同步副本。
+启动后如果修改根目录旧页面、CSS 或笔记数据，需要重新运行 `npm run dev` 来同步构建副本。Vue 模块的热更新不等于静态回退与 sitemap 已重新生成。
 
 `frontend/index.html`、`frontend/notes.html`、`frontend/skills-principles.html`、`frontend/works.html`、`frontend/about.html`、`.legacy-public/`、`src/generated/` 和 `dist/` 都是生成文件，不提交。
 笔记、技能和作品页保留原 HTML 内容作为脚本加载前与禁用 JavaScript 时的回退；Vue 挂载后由组件接管。
-过渡期改文案需同时更新 Vue 数据/模板与根目录对应的静态回退，保持内容一致。文章正文仍使用 `posts/` 原页面。
+笔记标题、分类、摘要和链接只维护在 `src/data/notes.ts`。构建时由它生成首页回退、笔记目录、文章总数及 sitemap 中的文章 URL；根目录 HTML/XML 对应位置使用 `<!-- build:... -->` 占位符。
+文章正文仍使用 `posts/` 原页面。构建会拒绝重复/非法路径、缺失的文章文件、缺少字段及未登记的文章；新增文章需同时放入正文文件并登记目录。sitemap 不将构建时间伪装为文章修改时间。
+其他尚未统一的数据（例如项目静态回退）仍需同时更新 Vue 数据/模板与根目录对应内容。
 作品页支持 `works.html#p-devfleet`、`#p-menu`、`#p-zhiyuan`，挂载后恢复直达位置并避开固定导航。
 构建使用固定版本依赖和 `package-lock.json`；部署只发布 `dist/` 中的公开文件。
 Vue 入口和生成的兼容脚本使用内容哈希文件名，避免新页面加载旧脚本。
@@ -67,7 +69,7 @@ Vue 入口和生成的兼容脚本使用内容哈希文件名，避免新页面�
 - `withVueHeader` 会检查原静态页面的 header 与旧脚本标签。结构变动后若构建报错，应更新适配规则，不能跳过检查并同时加载两套事件。
 
 `tests/browser-regression.mjs` 导出 Playwright 检查函数；在本地 preview 上调用 `checkDesktop(browser)`、
-`checkFallbacks(browser)`、`checkPages(browser)`、`checkArticleShell(browser)` 和 `checkTouch(browser)`，覆盖实际键鼠、刷新/后退、无脚本回退、四种尺寸、各页主题/菜单、14 篇文章、嵌套 404 资源与模拟表单提交。404 响应与 pageshow 缓存恢复事件在本地模拟，不代表正式 Nginx 或真机浏览器验收。
+`checkFallbacks(browser)`、`checkPages(browser)`、`checkArticleShell(browser)`、`checkNoteCatalog(browser)` 和 `checkTouch(browser)`，覆盖实际键鼠、刷新/后退、无脚本回退、四种尺寸、各页主题/菜单、全部文章、嵌套 404 资源与模拟表单提交。笔记检查会比较 Vue 与静态回退的内容、每页顺序和 sitemap；404 响应与 pageshow 缓存恢复事件在本地模拟，不代表正式 Nginx 或真机浏览器验收。
 它不在 `npm test` 中自动运行，也不会请求正式 API 或发送邮件。
 鼠标点击不保留永久暂停状态；阅读右侧卡片、键盘焦点停留、打开弹窗或页面隐藏时暂停。
 鼠标离开卡片后可自动恢复；系统减少动画设置开启时不自动轮播。

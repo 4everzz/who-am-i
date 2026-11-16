@@ -10,6 +10,7 @@ import {
   checkPages,
   checkTouch,
   checkArticleShell,
+  checkNoteCatalog,
 } from './browser-regression.mjs';
 
 const base = process.env.BROWSER_BASE_URL ?? 'http://127.0.0.1:4173';
@@ -118,6 +119,7 @@ async function run() {
       ['fallback rendering', checkFallbacks],
       ['responsive pages and contact mock', checkPages],
       ['article navigation and error page', checkArticleShell],
+      ['note content and pagination', checkNoteCatalog],
       ['touch interaction', checkTouch],
     ];
     for (const [name, check] of checks) {

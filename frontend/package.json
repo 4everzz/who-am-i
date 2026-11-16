@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prepare:site": "node scripts/prepare-site.mjs",
+    "prepare:site": "node --experimental-strip-types scripts/prepare-site.mjs",
     "predev": "npm run prepare:site",
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "typecheck": "npm run prepare:site && vue-tsc --noEmit",
