@@ -21,6 +21,7 @@ SETTINGS = '''
     smtp_from: str = ""
     smtp_use_ssl: bool = True
     contact_notification_max_attempts: int = 5
+    contact_notification_shutdown_timeout_seconds: int = 15
     contact_rate_limit_salt: str = ""
     contact_rate_limit_window_seconds: int = 300
     contact_rate_limit_max_submissions: int = 3

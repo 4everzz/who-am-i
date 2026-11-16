@@ -1,6 +1,7 @@
 """Run with PYTHONPATH pointing at a staged family-menu backend, never production."""
 import asyncio
 import os
+import threading
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -54,6 +55,7 @@ async def env(tmp_path, monkeypatch):
     monkeypatch.setattr(delivery, 'AsyncSessionLocal', factory)
     monkeypatch.setattr(settings, 'contact_rate_limit_max_submissions', 3)
     monkeypatch.setattr(settings, 'contact_notification_max_attempts', 5, raising=False)
+    monkeypatch.setattr(settings, 'contact_notification_shutdown_timeout_seconds', 15, raising=False)
     monkeypatch.setattr(settings, 'contact_hourly_limit', 60)
     monkeypatch.setattr(settings, 'contact_rate_limit_salt', 'test-contact-rate-limit-salt-at-least-32-characters')
     monkeypatch.setattr(settings, 'contact_require_origin', True)
@@ -275,6 +277,30 @@ async def test_failed_mail_moves_to_manual_after_max_attempts(env, monkeypatch):
         row = await session.scalar(select(ContactMessage))
         assert row.notification_status == CONTACT_NOTIFICATION_PENDING
         assert row.notification_attempts == 0
+
+
+@pytest.mark.asyncio
+async def test_shutdown_waits_for_inflight_mail_before_cancelling(env, monkeypatch):
+    _, client, factory = env
+    await client.post('/api/v1/contact-messages', json=payload())
+    started = threading.Event()
+    release = threading.Event()
+
+    def send_slowly(_):
+        started.set()
+        release.wait(5)
+
+    monkeypatch.setattr(delivery, '_send_email_sync', send_slowly)
+    pending = asyncio.create_task(delivery.deliver_pending_once())
+    assert await asyncio.to_thread(started.wait, 2)
+    pending.cancel()
+    release.set()
+    with pytest.raises(asyncio.CancelledError):
+        await pending
+    async with factory() as session:
+        row = await session.scalar(select(ContactMessage))
+        assert row.notification_status == CONTACT_NOTIFICATION_SENT
+        assert row.notification_sent_at is not None
 
 
 @pytest.mark.asyncio

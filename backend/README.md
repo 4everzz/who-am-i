@@ -47,6 +47,7 @@ python backend/install.py C:\path\to\family-menu\backend --apply
 SMTP 失败会保留原消息和重试时间，退避上限为一小时；服务重启后继续发送。
 默认最多尝试 5 次；达到上限后状态变为 `manual`，停止自动重试，并在管理员消息列表中保留错误类型。
 站主可调用 `POST /api/v1/admin/contact-messages/{id}/retry-notification` 将消息重新置为待发送并人工触发重试。
+容器关闭时会等待正在进行的 SMTP 调用，默认等待 15 秒；仍无法确认结果时转为 `manual`，避免重启后盲目重复发送。
 SMTP 采用 TLS 校验证书；日志只记错误类型与消息编号，不记邮件正文、联系方式或密码。
 邮件 From 始终使用站主邮箱，访客填写邮箱时设为 Reply-To，可在手机邮箱里直接回复。
 SMTP 接受邮件与数据库记发送成功之间若进程崩溃，可能产生一次重复提醒；这是至少一次投递，不保证恰好一次。

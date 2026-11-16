@@ -74,6 +74,7 @@ async def deliver_pending_once() -> bool:
     async with AsyncSessionLocal() as session:
         now = datetime.now(timezone.utc)
         max_attempts = max(1, int(getattr(settings, 'contact_notification_max_attempts', 5)))
+        shutdown_timeout = max(1.0, float(getattr(settings, 'contact_notification_shutdown_timeout_seconds', 15)))
         message = await session.scalar(
             select(ContactMessage).where(
                 ContactMessage.notification_sent_at.is_(None),
@@ -86,23 +87,47 @@ async def deliver_pending_once() -> bool:
         if message is None:
             return False
         message.notification_attempts += 1
+        send_task = asyncio.create_task(asyncio.to_thread(_send_email_sync, message))
+        cancelled = False
+        shutdown_expired = False
+        send_error = None
         try:
-            await asyncio.to_thread(_send_email_sync, message)
+            await asyncio.shield(send_task)
+        except asyncio.CancelledError:
+            # A container shutdown must not abandon an SMTP call after the
+            # message has left the database transaction's lock.
+            cancelled = True
+            try:
+                await asyncio.wait_for(asyncio.shield(send_task), timeout=shutdown_timeout)
+            except asyncio.TimeoutError:
+                shutdown_expired = True
+            except Exception as error:
+                send_error = error
         except Exception as error:
-            message.notification_error = type(error).__name__
+            send_error = error
+
+        if shutdown_expired:
+            message.notification_status = CONTACT_NOTIFICATION_MANUAL
+            message.notification_error = 'ShutdownTimeout'
+            message.notification_next_attempt_at = now
+            logger.error('Contact email requires manual handling after shutdown timeout id=%s', message.id)
+        elif send_error is not None:
+            message.notification_error = type(send_error).__name__
             if message.notification_attempts >= max_attempts:
                 message.notification_status = CONTACT_NOTIFICATION_MANUAL
                 message.notification_next_attempt_at = now
-                logger.error('Contact email requires manual handling id=%s attempts=%s type=%s', message.id, message.notification_attempts, type(error).__name__)
+                logger.error('Contact email requires manual handling id=%s attempts=%s type=%s', message.id, message.notification_attempts, type(send_error).__name__)
             else:
                 delay = min(3600, 30 * 2 ** min(message.notification_attempts, 7))
                 message.notification_next_attempt_at = now + timedelta(seconds=delay)
-                logger.warning('Contact email failed id=%s attempt=%s type=%s', message.id, message.notification_attempts, type(error).__name__)
+                logger.warning('Contact email failed id=%s attempt=%s type=%s', message.id, message.notification_attempts, type(send_error).__name__)
         else:
             message.notification_sent_at = datetime.now(timezone.utc)
             message.notification_status = CONTACT_NOTIFICATION_SENT
             message.notification_error = None
         await session.commit()
+        if cancelled:
+            raise asyncio.CancelledError
         return True
 
 
