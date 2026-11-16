@@ -5,6 +5,7 @@ import { projectFallback } from './site-fallbacks.mjs';
 import { versionedAssetDirectory } from './versioned-assets.mjs';
 import { notes } from '../src/data/notes.ts';
 import { fillContentSlot, renderHomeNotes, renderNoteCatalog, renderNoteSitemap, validateNoteCatalog } from './note-content.mjs';
+import { renderHomeAbout, renderHomePrinciples, renderHomeStack, renderSkillsPageContent } from './home-content.mjs';
 
 const root = new URL('../../', import.meta.url);
 const articlePaths = (await readdir(new URL('posts/', root), { withFileTypes: true }))
@@ -62,6 +63,16 @@ if (!work.test(html)) throw new Error('Homepage project section changed; review 
 // Readable before Vue mounts, with JavaScript disabled, or if its bundle fails.
 html = html.replace(work, projectFallback);
 html = fillContentSlot(html, '<!-- build:home-notes -->', renderHomeNotes(notes));
+const homeSections = [
+  ['stack', renderHomeStack()],
+  ['principles', renderHomePrinciples()],
+  ['about', renderHomeAbout()],
+];
+for (const [id, content] of homeSections) {
+  const section = new RegExp(`<section[^>]+id="${id}"[\\s\\S]*?<\\/section>`);
+  if (!section.test(html)) throw new Error(`Homepage ${id} section changed; review the typed fallback adapter.`);
+  html = html.replace(section, content);
+}
 for (const [id, mount] of [['stack', 'home-stack-app'], ['principles', 'home-principles-app'], ['about', 'home-about-app']]) {
   const section = new RegExp(`<section[^>]+id="${id}"[\\s\\S]*?<\\/section>`);
   if (!section.test(html)) throw new Error(`Homepage ${id} section changed; review the Vue adapter.`);
@@ -85,9 +96,11 @@ notesHtml = notesHtml.replaceAll('href="assets/', 'href="/assets/').replaceAll('
 await writeFile(new URL('../notes.html', import.meta.url), withVueHeader(notesHtml));
 
 let skillsHtml = await readFile(new URL('skills-principles.html', root), 'utf8');
-const skillsContent = /<section class="content-block">[\s\S]*?<\/main>/;
-if (!skillsContent.test(skillsHtml)) throw new Error('Skills page content changed; review the Vue skills adapter.');
-skillsHtml = skillsHtml.replace(skillsContent, content => '<div id="skills-app">' + content.replace('</main>', '') + '</div></main>');
+const skillsMainStart = skillsHtml.indexOf('<main class="section-page" id="main">');
+const skillsContentStart = skillsHtml.indexOf('<section class="content-block">', skillsMainStart);
+const skillsMainEnd = skillsHtml.indexOf('</main>', skillsContentStart);
+if (skillsMainStart < 0 || skillsContentStart < 0 || skillsMainEnd < 0) throw new Error('Skills page content changed; review the Vue skills adapter.');
+skillsHtml = skillsHtml.slice(0, skillsContentStart) + '<div id="skills-app">' + renderSkillsPageContent() + '</div>' + skillsHtml.slice(skillsMainEnd);
 const skillsPostScript = /<script src="assets\/post\.js[^\"]*"><\/script>/;
 if (!skillsPostScript.test(skillsHtml)) throw new Error('Skills page script entry changed; review the Vue skills adapter.');
 skillsHtml = skillsHtml.replace(skillsPostScript, '$&<script type="module" src="/src/skills-main.ts"></script>');

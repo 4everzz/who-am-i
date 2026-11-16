@@ -7,3 +7,9 @@ export interface Principle {
   readonly title: string;
   readonly description: string;
 }
+
+export interface StackGroup {
+  readonly key: string;
+  readonly title: string;
+  readonly items: readonly (readonly [label: string, value: string])[];
+}
