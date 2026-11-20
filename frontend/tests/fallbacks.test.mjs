@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { projectFallback } from '../scripts/site-fallbacks.mjs';
 import { renderHomeAbout, renderHomePrinciples, renderHomeStack, renderSkillsPageContent } from '../scripts/home-content.mjs';
 import { aboutSite } from '../src/data/about.ts';
-import { principles, stackGroups } from '../src/data/skills.ts';
+import { homePrinciples, principles, stackGroups } from '../src/data/skills.ts';
 import { versionedAssetDirectory } from '../scripts/versioned-assets.mjs';
 
 test('homepage fallback exposes all project copy and navigable details without script', async () => {
@@ -39,17 +39,19 @@ test('changing a nested motion dependency invalidates the directory URL', async 
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
 
-test('homepage and skills fallback copy comes from typed skill data', () => {
+test('homepage and skills fallback copy comes from their respective typed skill data', () => {
   const homeStack = renderHomeStack();
-  const homePrinciples = renderHomePrinciples();
+  const homePrinciplesHtml = renderHomePrinciples();
   const skillsPage = renderSkillsPageContent();
   for (const group of stackGroups) {
     assert.ok(homeStack.includes(group.title));
     for (const [label, value] of group.items) assert.ok(homeStack.includes(label) && homeStack.includes(value));
   }
+  for (const principle of homePrinciples) {
+    assert.ok(homePrinciplesHtml.includes(principle.title));
+    assert.ok(homePrinciplesHtml.includes(principle.description));
+  }
   for (const principle of principles) {
-    assert.ok(homePrinciples.includes(principle.title));
-    assert.ok(homePrinciples.includes(principle.description));
     assert.ok(skillsPage.includes(principle.title));
     assert.ok(skillsPage.includes(principle.description));
   }

@@ -1,4 +1,4 @@
-import { principles, skillGroups, stackGroups } from '../src/data/skills.ts';
+import { homePrinciples, principles, skillGroups, stackGroups } from '../src/data/skills.ts';
 import { aboutSite } from '../src/data/about.ts';
 
 function escapeHtml(value) {
@@ -25,7 +25,7 @@ export function renderHomeStack() {
 }
 
 export function renderHomePrinciples() {
-  const rows = principles.map((principle, index) => `<li>
+  const rows = homePrinciples.map((principle, index) => `<li>
           <span class="p-num">${String(index + 1).padStart(2, '0')}</span>
           <div><h3>${escapeHtml(principle.title)}</h3><p>${escapeHtml(principle.description)}</p></div>
         </li>`).join('\n        ');
